@@ -13,14 +13,14 @@ end
 
 function update_buffer!(f, F, ∇ₓf, ∇ₓF, buffer, p, alg; options...)
     if p ≠ buffer.p       # only update if p has changed
-        buffer.p = p      # update p
-        s, m = buffer.s, length(p)
-        prob = SteadyStateProblem(F, ∇ₓF, s, p) # define problem
-        buffer.s .= solve(prob, alg; options...) # update s (inner solver)
+        s, ∇s, m = buffer.s, buffer.∇s, length(p)
+        prob = SteadyStateProblem(F, ∇ₓF, s + ∇s * (p - buffer.p), p) # define problem
+        buffer.s .= solve(prob, alg, buffer.A; options...) # update s (inner solver)
         ∇ₚF = hcat([𝔇(F(s, p + ε * e(j,m))) for j in 1:m]...) # Eq.(?)
         buffer.A = factorize(∇ₓF(s,p))  # update factors of ∇ₓF(s, p)
         buffer.∇s .= buffer.A \ -∇ₚF    # update ∇s via Eq.(?)
         buffer.∇ₓf .= ∇ₓf(s,p)          # update ∇ₓf(s, p)
+        buffer.p = p      # update p
     end
 end
 
@@ -51,10 +51,10 @@ function ∇²f̂(f, F, ∇ₓf, ∇ₓF, buffer, p, alg; options...) # Hessian
     return out
 end
 
-function initialize_buffer(f, F, ∇ₓf, ∇ₓF, s, p, alg; options...)
+function initialize_buffer(f, F, ∇ₓf, ∇ₓF, x₀, p, alg; options...)
     m = length(p)
-    prob = SteadyStateProblem(F, ∇ₓF, s, p)
-    s .= solve(prob, alg; options...)
+    prob = SteadyStateProblem(F, ∇ₓF, x₀, p)
+    s = solve(prob, alg; options...).u
     ∇ₚF = hcat([𝔇(F(s, p + ε * e(j,m))) for j in 1:m]...)
     A = factorize(∇ₓF(s,p))
     ∇s = A \ -∇ₚF
