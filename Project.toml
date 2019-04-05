@@ -1,0 +1,4 @@
+name = "FormulaOneMethod"
+uuid = "f243976a-5756-11e9-2994-eb72b43b8255"
+authors = ["Benoit Pasquier <pasquieb@uci.edu>"]
+version = "0.1.0"
