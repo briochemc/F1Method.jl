@@ -13,8 +13,8 @@ end
 
 function update_buffer!(f, F, ∇ₓf, ∇ₓF, buffer, p, alg; options...)
     if p ≠ buffer.p       # only update if p has changed
-        s, ∇s, m = buffer.s, buffer.∇s, length(p)
-        prob = SteadyStateProblem(F, ∇ₓF, s + ∇s * (p - buffer.p), p) # define problem
+        s, m = buffer.s, length(p)
+        prob = SteadyStateProblem(F, ∇ₓF, s, p) # define problem
         buffer.s .= solve(prob, alg, buffer.A; options...) # update s (inner solver)
         ∇ₚF = hcat([𝔇(F(s, p + ε * e(j,m))) for j in 1:m]...) # Eq.(?)
         buffer.A = factorize(∇ₓF(s,p))  # update factors of ∇ₓF(s, p)
