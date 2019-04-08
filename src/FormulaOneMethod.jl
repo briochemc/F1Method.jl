@@ -4,18 +4,17 @@ using LinearAlgebra
 using DualNumbers, HyperDualNumbers, DiffEqBase
 
 mutable struct Buffer
-    p   # p
     s   # s(p)
     A   # factors of ∇ₓF(s, p)
     ∇s  # ∇s(p)
     ∇ₓf # ∇ₓf(s, p)
+    p   # p
 end
 
 function update_buffer!(f, F, ∇ₓf, ∇ₓF, buffer, p, alg; options...)
     if p ≠ buffer.p       # only update if p has changed
-        s, m = buffer.s, length(p)
-        prob = SteadyStateProblem(F, ∇ₓF, s, p) # define problem
-        buffer.s .= solve(prob, alg, buffer.A; options...) # update s (inner solver)
+        update_solution_only!(F, ∇ₓF, buffer, p, alg; options...)
+        s, m = buffer.s.u, length(p)
         ∇ₚF = hcat([𝔇(F(s, p + ε * e(j,m))) for j in 1:m]...) # Eq.(?)
         buffer.A = factorize(∇ₓF(s,p))  # update factors of ∇ₓF(s, p)
         buffer.∇s .= buffer.A \ -∇ₚF    # update ∇s via Eq.(?)
@@ -24,10 +23,17 @@ function update_buffer!(f, F, ∇ₓf, ∇ₓF, buffer, p, alg; options...)
     end
 end
 
-function f̂(f, F, ∇ₓf, ∇ₓF, buffer, p, alg; options...) # objective
-    update_buffer!(f, F, ∇ₓf, ∇ₓF, buffer, p, alg; options...)
-    s = buffer.s
-    return f(s,p)
+function update_solution_only!(F, ∇ₓF, buffer, p, alg; options...)
+    if ~(buffer.s isa SteadyStateSolution) || p ≠ buffer.s.prob.p
+        buffer.s isa SteadyStateSolution ? x = buffer.s.u : x = buffer.s
+        prob = SteadyStateProblem(F, ∇ₓF, x, p) # define problem
+        buffer.s = solve(prob, alg; options...) # update s (inner solver)
+    end
+end
+
+function f̂(f, F, ∇ₓF, buffer, p, alg; options...) # objective
+    update_solution_only!(F, ∇ₓF, buffer, p, alg; options...)
+    return f(buffer.s,p)
 end
 
 function ∇f̂(f, F, ∇ₓf, ∇ₓF, buffer, p, alg; options...) # gradient
@@ -51,21 +57,14 @@ function ∇²f̂(f, F, ∇ₓf, ∇ₓF, buffer, p, alg; options...) # Hessian
     return out
 end
 
-function initialize_buffer(f, F, ∇ₓf, ∇ₓF, x₀, p, alg; options...)
-    m = length(p)
-    prob = SteadyStateProblem(F, ∇ₓF, x₀, p)
-    s = solve(prob, alg; options...).u
-    ∇ₚF = hcat([𝔇(F(s, p + ε * e(j,m))) for j in 1:m]...)
-    A = factorize(∇ₓF(s,p))
-    ∇s = A \ -∇ₚF
-    return Buffer(p, s, A, ∇s, ∇ₓf(s,p))
+function initialize_buffer(x, p)
+    n, m = length(x), length(p)
+    return Buffer(copy(x), nothing, zeros(n,m), zeros(1,n), nothing)
 end
 
 # Helper functions
 e(j, m) = [i == j for i in 1:m]      # j-th basis vector
 𝔇(x) = DualNumbers.dualpart.(x)      # dual part
 ℌ(x) = HyperDualNumbers.ε₁ε₂part.(x) # hyperdual part
-
-export f̂, ∇f̂, ∇²f̂, initialize_buffer
 
 end # module
