@@ -1,7 +1,7 @@
 module FormulaOneMethod
 
 using LinearAlgebra, DualNumbers, HyperDualNumbers, DiffEqBase
-
+ 
 mutable struct Mem # Storage for efficient reuse
     s     # 𝑠(𝑝)
     A     # factors of A = ∇ₓ𝐹(𝑠,𝑝)
