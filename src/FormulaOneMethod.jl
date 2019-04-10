@@ -56,13 +56,13 @@ function ∇²f̂(f, F, ∇ₓf, ∇ₓF, mem, p, alg; options...)        # Hess
     return H
 end
 
+e(j, m) = [i == j for i in 1:m]      # 𝑗ᵗʰ basis vector of ℝᵐ
+𝔇(x) = DualNumbers.dualpart.(x)      # dual part
+ℌ(x) = HyperDualNumbers.ε₁ε₂part.(x) # hyperdual part
+
 function initialize_mem(x, p)             # function to initialize mem
     n, m = length(x), length(p)
     return Mem(copy(x), nothing, zeros(n,m), zeros(1,n), nothing)
 end
-
-e(j, m) = [i == j for i in 1:m]      # 𝑗ᵗʰ basis vector of ℝᵐ
-𝔇(x) = DualNumbers.dualpart.(x)      # dual part
-ℌ(x) = HyperDualNumbers.ε₁ε₂part.(x) # hyperdual part
 
 end
