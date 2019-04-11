@@ -1,5 +1,5 @@
 
-<img src="/img/Logo_v1.png" alt="logo" title="F1method" align="right" height="200"/>
+<img src="/img/Logo_v1.jpg" alt="logo" title="F1method" align="right" height="200"/>
 
 F-1 method
 ==========
