@@ -11,12 +11,12 @@ mutable struct Mem # Storage for efficient reuse
 end
 
 function update_mem!(f, F, ∇ₓf, ∇ₓF, mem, p, alg; options...)
-    if p ≠ mem.p                    # only update mem if 𝑝 has changed
+    if p ≠ mem.p                      # only update mem if 𝑝 has changed
         update_solution!(F, ∇ₓF, mem, p, alg; options...)
         s, m = mem.s.u, length(p)
-        ∇ₚF = hcat([𝔇(F(s, p + ε * e(j,m))) for j in 1:m]...) # Eq.(?)
+        ∇ₚF = reduce(hcat, [𝔇(F(s, p + ε * e(j,m))) for j in 1:m]) # Eq.(?)
         mem.A = factorize(∇ₓF(s,p))   # update factors of ∇ₓ𝐹(𝑠,𝑝)
-        mem.∇s .= mem.A \ -∇ₚF        # update ∇𝑠               Eq.(?)
+        mem.∇s .= mem.A \ -∇ₚF        # update ∇𝑠                    Eq.(?)
         mem.∇ₓf .= ∇ₓf(s,p)           # update ∇ₓ𝑓(𝑠,𝑝)
         mem.p = p                     # update 𝑝
     end
