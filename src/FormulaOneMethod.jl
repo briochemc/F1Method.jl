@@ -56,7 +56,7 @@ function ∇²f̂(f, F, ∇ₓf, ∇ₓF, mem, p, alg; options...)        # Hess
     return H
 end
 
-e(j, m) = [i == j for i in 1:m]      # 𝑗ᵗʰ basis vector of ℝᵐ
+e(j, m) = [i == j for i in 1:m]      # 𝑗th basis vector of ℝᵐ
 𝔇(x) = DualNumbers.dualpart.(x)      # dual part
 ℌ(x) = HyperDualNumbers.ε₁ε₂part.(x) # hyperdual part
 
