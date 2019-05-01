@@ -31,7 +31,7 @@ function update_solution!(F, ∇ₓF, mem, p, alg; options...)
 end
 
 function f̂(f, F, ∇ₓF, mem, p, alg; options...)             # objective
-    update_solution_only!(F, ∇ₓF, mem, p, alg; options...)
+    update_solution!(F, ∇ₓF, mem, p, alg; options...)
     return f(mem.s,p)
 end
 
