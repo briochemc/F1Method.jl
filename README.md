@@ -68,15 +68,17 @@ Once an initial state, `x₀`, and some parameters, `p₀`, are chosen, simply e
 # Initialize the cache for storing reusable objects
 mem = F1Method.initialize_mem(x₀, p₀)
 
+# Wrap the objective, gradient, and Hessian functions
+objective(p) = F1Method.f̂(f, F, ∇ₓF, mem, p, myAlg(); my_options...)
+gradient(p) = F1Method.∇f̂(f, F, ∇ₓf, ∇ₓF, mem, p₀, myAlg(); my_options...)
+hessian(p) = F1Method.∇²f̂(f, F, ∇ₓf, ∇ₓF, mem, p₀, myAlg(); my_options...)
+
 # Compute the objective function, 𝑓̂(𝒑)
-f̂(p) = F1Method.f̂(f, F, ∇ₓF, mem, p, myAlg(); my_options...)
-f̂(p₀)
+objective(p₀)
 
 # Compute the gradient, ∇𝑓̂(𝒑)
-∇f̂(p) = F1Method.∇f̂(f, F, ∇ₓf, ∇ₓF, mem, p₀, myAlg(); my_options...)
-∇f̂(p₀)
+gradient(p₀)
 
 # Compute the Hessian matrix, ∇²𝑓̂(𝒑)
-∇²f̂(p) = F1Method.∇²f̂(f, F, ∇ₓf, ∇ₓF, mem, p₀, myAlg(); my_options...)
-∇²f̂(p₀)
+hessian(p₀)
 ```
