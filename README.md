@@ -18,3 +18,25 @@ To use the F-1 method, the user must:
 
 - Make sure that there is a suitable algorithm `alg` to solve the steady-state equation, that is implemented with the `solve` function of [DiffEqBase](https://github.com/JuliaDiffEq/DiffEqBase.jl). (An example is given in the CI tests — see the `test/` directory.)
 - Provide the derivatives of `f` and `F` with respect to the state, `x`.
+
+### Simple usage
+
+Make sure you have olverloaded `solve` from DiffEqBase.
+Once an initial state, `x₀`, and some parameters, `p₀`, are chosen, simply evaluate the derivatives with
+
+```julia
+# Initialize the cache for storing reusable objects
+mem = initialize_mem(x₀, p₀)
+
+# Compute the objective function, 𝑓̂(𝒑)
+f̂(p) = F1.f̂(f, F, ∇ₓF, mem, p, myAlg(); my_options...)
+f̂(p₀)
+
+# Compute the gradient, ∇𝑓̂(𝒑)
+∇f̂(p) = F1.∇f̂(f, F, ∇ₓf, ∇ₓF, mem, p₀, myAlg(); my_options...)
+∇f̂(p₀)
+
+# Compute the Hessian matrix, ∇𝑓̂(𝒑)
+∇²f̂(p) = F1.∇²f̂(f, F, ∇ₓf, ∇ₓF, mem, p₀, myAlg(); my_options...)
+∇²f̂(p₀)
+```
