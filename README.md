@@ -4,6 +4,27 @@
 F-1 Method
 ==========
 
+<p>
+  <a href="https://doi.org/<DOI_number>">
+    <img src="https://zenodo.org/badge/DOI/<DOI_number>.svg" alt="DOI">
+  </a>
+  <a href="https://briochemc.github.io/F1Method.jl/stable">
+    <img src=https://img.shields.io/badge/docs-stable-blue.svg>
+  </a>
+  <a href="https://travis-ci.com/briochemc/F1Method.jl">
+    <img alt="Build Status" src="https://travis-ci.com/briochemc/F1Method.jl.svg?branch=master">
+  </a>
+  <a href='https://coveralls.io/github/briochemc/F1Method.jl'>
+    <img src='https://coveralls.io/repos/github/briochemc/F1Method.jl/badge.svg' alt='Coverage Status' />
+  </a>
+  <a href="https://codecov.io/gh/briochemc/F1Method.jl">
+    <img src="https://codecov.io/gh/briochemc/F1Method.jl/branch/master/graph/badge.svg" />
+  </a>
+  <a href="https://github.com/briochemc/F1Method.jl/blob/master/LICENSE">
+    <img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-yellow.svg">
+  </a>
+</p>
+
 This package implements the F-1 method descibed in Pasquier et al. (2019).
 It allows for efficient quasi-auto-differentiation of an objective function define implicitly by a the solution of a steady-state problem represented by discretized nonlinear partial differential equations taking the form
 
