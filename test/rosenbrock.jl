@@ -11,16 +11,13 @@
 # Specifically, if r(x,y) denotes the rosenbrock function,
 #     F₁([x, y], p) = ∂r/∂x
 #     F₂([x, y], p) = 0.5 * ∂r/∂y
-F(x, p) = [
+F(x,p) = [
     -2 * (p[1] - x[1]) - 4 * p[2] * (x[2] - x[1]^2) * x[1]
     p[2] * (x[2] - x[1]^2)
 ]
  
 # Jacobian function of F w.r.t. p
-∇ₓF(x, p) = [
-    2 - 4 * p[2] * (x[2] - x[1]^2) + 8 * p[2] * x[1]^2    -4 * p[2] * x[1]
-    -2 * p[2] * x[1]                                      p[2]
-]
+∇ₓF(x,p) = ForwardDiff.jacobian(x -> F(x,p), x)
 
 # Define mismatch function f(x,p) and its derivative ∇ₓf(x,p)
 # (Note ∇ₓF and ∇ₓf are required by the F1 method)
@@ -33,10 +30,7 @@ function parameter_mismatch(p)
     return 0.5δ(p)'δ(p)
 end
 f(x,p) = state_mismatch(x) + parameter_mismatch(p)
-function ∇ₓf(x,p)
-    δ(x) = x .- 1
-    return δ(x)'
-end
+∇ₓf(x,p) = ForwardDiff.jacobian(x -> [f(x,p)], x)
 
 # Initialize the starting state and parameters
 x₀ = rand(2)
@@ -54,9 +48,6 @@ exact_solution(p) = [p[1], p[1]^2]
 exact_objective(p) = f(exact_solution(p), p)
 
 # Run the tests
-@testset "Jacobian" begin
-    @test ForwardDiff.jacobian(x -> F(x,p₀), x₀) ≈ ∇ₓF(x₀, p₀)
-end
 @testset "objective" begin
     @test exact_objective(p₀) ≈ F1_objective(p₀)
 end
