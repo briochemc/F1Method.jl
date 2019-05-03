@@ -1,10 +1,17 @@
 module FormulaOneMethod
 
+#======================================================================
+This package (the code below) implements the F-1 method as described
+in the work of Pasquier et al. (2019). The numbers in parentheses
+refer to the Equation numbers in the above manuscript. A bibtex
+citation file is available in the GitHub repository.
+======================================================================#
+
 using LinearAlgebra, DualNumbers, HyperDualNumbers, DiffEqBase
- 
-mutable struct Mem # Storage for efficient reuse
+
+mutable struct Mem # memory cache storing reusable objects
     s     # 𝒔(𝒑)
-    A     # factors of A = ∇ₓ𝑭(𝒔,𝒑)
+    A     # factors of 𝐀 = ∇ₓ𝑭(𝒔,𝒑)
     ∇s    # ∇𝒔(𝒑)
     ∇ₓf   # ∇ₓ𝑓(𝒔,𝒑)
     p     # 𝒑
@@ -14,9 +21,9 @@ function update_mem!(f, F, ∇ₓf, ∇ₓF, mem, p, alg; options...)
     if p ≠ mem.p                      # only update mem if 𝒑 has changed
         update_solution!(F, ∇ₓF, mem, p, alg; options...)
         s, m = mem.s.u, length(p)
-        ∇ₚF = reduce(hcat, [𝔇(F(s, p + ε * e(j,m))) for j in 1:m]) # Eq.(?)
+        ∇ₚF = reduce(hcat, [𝔇(F(s, p + ε * e(j,m))) for j in 1:m]) #(18)
         mem.A = factorize(∇ₓF(s,p))   # update factors of ∇ₓ𝑭(𝒔,𝒑)
-        mem.∇s .= mem.A \ -∇ₚF        # update ∇𝒔                    Eq.(?)
+        mem.∇s .= mem.A \ -∇ₚF        # update ∇𝒔 via (13)
         mem.∇ₓf .= ∇ₓf(s,p)           # update ∇ₓ𝑓(𝒔,𝒑)
         mem.p = p                     # update 𝒑
     end
@@ -38,8 +45,8 @@ end
 function ∇f̂(f, F, ∇ₓf, ∇ₓF, mem, p, alg; options...)        # gradient
     update_mem!(f, F, ∇ₓf, ∇ₓF, mem, p, alg; options...)
     s, ∇s, m = mem.s, mem.∇s, length(p)
-    ∇ₚf = [𝔇(f(s,p + ε * e(j,m))) for j in 1:m]'    # Eq.(?)
-    return mem.∇ₓf * ∇s + ∇ₚf                       # Eq.(?)
+    ∇ₚf = [𝔇(f(s,p + ε * e(j,m))) for j in 1:m]'    # (17)
+    return mem.∇ₓf * ∇s + ∇ₚf                       # (12)
 end
 
 function ∇²f̂(f, F, ∇ₓf, ∇ₓF, mem, p, alg; options...)        # Hessian
@@ -50,7 +57,7 @@ function ∇²f̂(f, F, ∇ₓf, ∇ₓF, mem, p, alg; options...)        # Hess
     for j in 1:m, k in j:m       # loop upper triangle (symmetry)
         pⱼₖ = p + ε₁ * e(j,m) + ε₂ * e(k,m)              # hyperdual 𝒑
         xⱼₖ = s + ε₁ * ∇s * e(j,m) + ε₂ * ∇s * e(k,m)    # hyperdual 𝒙
-        H[j,k] = ℌ(f(xⱼₖ,pⱼₖ)) - ℌ(F(xⱼₖ,pⱼₖ))' * A⁻ᵀ∇ₓfᵀ     # Eq.(?)
+        H[j,k] = ℌ(f(xⱼₖ,pⱼₖ)) - ℌ(F(xⱼₖ,pⱼₖ))' * A⁻ᵀ∇ₓfᵀ    # (19)
         j ≠ k ? H[k,j] = H[j,k] : nothing
     end
     return H
@@ -60,7 +67,7 @@ e(j, m) = [i == j for i in 1:m]      # 𝑗th basis vector of ℝᵐ
 𝔇(x) = DualNumbers.dualpart.(x)      # dual part
 ℌ(x) = HyperDualNumbers.ε₁ε₂part.(x) # hyperdual part
 
-function initialize_mem(x, p)             # function to initialize mem
+function initialize_mem(x, p) # function to initialize the cache (mem)
     n, m = length(x), length(p)
     return Mem(copy(x), nothing, zeros(n,m), zeros(1,n), nothing)
 end
