@@ -42,7 +42,7 @@ end
 x₀ = rand(2)
 p₀ = rand(2)
 # Initialize the memory cache for storing reusable objects
-mem = F1.initialize_mem(x₀, p₀)
+mem = F1Method.initialize_mem(x₀, p₀)
 
 # Define the functions via the F1 method
 F1_objective(p) = F1Method.f̂(f, F, ∇ₓF, mem, p, MyAlg())
