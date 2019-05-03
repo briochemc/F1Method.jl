@@ -36,7 +36,7 @@ f̂(p₀)
 ∇f̂(p) = F1.∇f̂(f, F, ∇ₓf, ∇ₓF, mem, p₀, myAlg(); my_options...)
 ∇f̂(p₀)
 
-# Compute the Hessian matrix, ∇𝑓̂(𝒑)
+# Compute the Hessian matrix, ∇²𝑓̂(𝒑)
 ∇²f̂(p) = F1.∇²f̂(f, F, ∇ₓf, ∇ₓF, mem, p₀, myAlg(); my_options...)
 ∇²f̂(p₀)
 ```
