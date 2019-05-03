@@ -3,7 +3,6 @@
 # except the Hessian matroix is made non-symmetric by slightly altering
 # F(x,p)
 
-using LinearAlgebra, SparseArrays, SuiteSparse, DiffEqBase, ForwardDiff
 
 # State function ≈ gradient of Rosenbrock.
 # With p = [a, b] the parameters defining the constants

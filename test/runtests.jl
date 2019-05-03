@@ -1,6 +1,8 @@
 
 using Test, F1Method
 
+using LinearAlgebra, DiffEqBase, ForwardDiff
+
 # Set up:
 # - overload `SteadyStateProblem` constructor
 # - overload `solve` function
