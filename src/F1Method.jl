@@ -1,4 +1,4 @@
-module FormulaOneMethod
+module F1Method
 
 #======================================================================
 This package (the code below) implements the F-1 method as described

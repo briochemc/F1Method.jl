@@ -1,5 +1,5 @@
 
-using Test, FormulaOneMethod
+using Test, F1Method
 
 # Set up:
 # - overload `SteadyStateProblem` constructor

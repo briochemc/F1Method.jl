@@ -32,5 +32,3 @@ function DiffEqBase.SteadyStateProblem(F, ∇ₓF, x, p)
     f(df, dx, x, p, t) = ∇ₓF(x, p)
     return DiffEqBase.SteadyStateProblem(f, x, p)
 end
-
-F1 = FormulaOneMethod
