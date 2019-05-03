@@ -1,8 +1,8 @@
 
 <img src="/img/Logo_v2.png" alt="logo" title="F1method" align="right" height="200"/>
 
-F-1 differentiation method
-==========================
+F-1 Method
+==========
 
 This package implements the F-1 method descibed in Pasquier et al. (2019).
 It allows for efficient quasi-auto-differentiation of an objective function define implicitly by a the solution of a steady-state problem represented by discretized nonlinear partial differential equations taking the form
