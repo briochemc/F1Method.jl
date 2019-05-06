@@ -1,4 +1,5 @@
 using Documenter, F1Method
+using LinearAlgebra, DiffEqBase, ForwardDiff
 
 makedocs(
     sitename="F1Method Documentation",
