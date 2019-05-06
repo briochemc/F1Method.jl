@@ -10,6 +10,9 @@
   <a href="https://briochemc.github.io/F1Method.jl/stable/">
     <img src=https://img.shields.io/badge/docs-stable-blue.svg>
   </a>
+  <a href="https://juliadocs.github.io/Documenter.jl/latest/">
+    <img src=https://img.shields.io/badge/docs-dev-blue.svg>
+  </a>
 </p>
 <p>
   <a href="https://travis-ci.com/briochemc/F1Method.jl">
