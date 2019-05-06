@@ -19,7 +19,7 @@ end
 ```
 
 This is an example use of the software.
-We design a state function,
+We define a state function,
 ``\boldsymbol{F}(\boldsymbol{x},\boldsymbol{p})``,
 to which we apply a solver based on Newton's method (for root searching) to find the steady-state solution,
 ``\boldsymbol{x}``,
