@@ -70,8 +70,8 @@ mem = F1Method.initialize_mem(x₀, p₀)
 
 # Wrap the objective, gradient, and Hessian functions
 objective(p) = F1Method.f̂(f, F, ∇ₓF, mem, p, myAlg(); my_options...)
-gradient(p) = F1Method.∇f̂(f, F, ∇ₓf, ∇ₓF, mem, p₀, myAlg(); my_options...)
-hessian(p) = F1Method.∇²f̂(f, F, ∇ₓf, ∇ₓF, mem, p₀, myAlg(); my_options...)
+gradient(p) = F1Method.∇f̂(f, F, ∇ₓf, ∇ₓF, mem, p, myAlg(); my_options...)
+hessian(p) = F1Method.∇²f̂(f, F, ∇ₓf, ∇ₓF, mem, p, myAlg(); my_options...)
 
 # Compute the objective function, 𝑓̂(𝒑)
 objective(p₀)
