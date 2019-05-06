@@ -10,7 +10,7 @@ F(x,p) = [
 
 # output
 
-∇ₓF (generic function with 1 method)</code></pre><p>We also define a cost function <code>f(x,p)</code> (that we wish to minimize under the constraint that <span>$\boldsymbol{F}(\boldsymbol{x},\boldsymbol{p}) = 0$</span>). (The F-1 method requires that we provide the derivatives w.r.t. the state, <code>x</code>, hence the use of ForwardDiff again for this exmaple.)</p><pre><code class="language-julia"># Define mismatch function f(x,p) and its derivative ∇ₓf(x,p)
+∇ₓF (generic function with 1 method)</code></pre><p>We also define a cost function <code>f(x,p)</code> (that we wish to minimize under the constraint that <span>$\boldsymbol{F}(\boldsymbol{x},\boldsymbol{p}) = 0$</span>). (The F-1 method requires that we provide the derivatives w.r.t. the state, <code>x</code>, hence the use of ForwardDiff again for this example.)</p><pre><code class="language-julia"># Define mismatch function f(x,p) and its derivative ∇ₓf(x,p)
 # (Note ∇ₓF and ∇ₓf are required by the F1 method)
 function state_mismatch(x)
     δ(x) = x .- 1
@@ -25,7 +25,7 @@ f(x,p) = state_mismatch(x) + parameter_mismatch(p)
 
 # output
 
-∇ₓf (generic function with 1 method)</code></pre><p>Once these are set up, we need to let the F-1 method know how to solve for the steady-state. We do this by using the DiffEqBase API. For that, we first write a small Newton solver algorithm, we overload the <code>solve</code> function from DiffEqBase, and we overload the <code>SteadyStateProblem</code> constructor.</p><pre><code class="language-julia">function newton_solve(F, ∇ₓF, x; Ftol=1e-10)
+∇ₓf (generic function with 1 method)</code></pre><p>Once these are set up, we need to let the F-1 method know how to solve for the steady-state. We do this by using the <a href="https://github.com/JuliaDiffEq/DiffEqBase.jl">DiffEqBase</a> API. For that, we first write a small Newton solver algorithm, we overload the <code>solve</code> function from DiffEqBase, and we overload the <code>SteadyStateProblem</code> constructor.</p><pre><code class="language-julia">function newton_solve(F, ∇ₓF, x; Ftol=1e-10)
     while norm(F(x)) ≥ Ftol
         x .-= ∇ₓF(x) \ F(x)
     end
