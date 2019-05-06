@@ -2,7 +2,7 @@
 
 This package provides an efficient tool to compute gradient and Hessian matrix of an objective function implicitly defined by the solution of a steady-state problem.
 
-## Motvation
+## Why the F-1 method?
 
 When using Newton-type algorithms for optimization, computing the gradient and Hessian can be computationally expensive.
 A typical scientific application is to optimize the parameters of a model which solves for a root through another iterative Newton-like algorithm.
@@ -20,16 +20,17 @@ end
 
 This is an example use of the software.
 We design a state function,
-``\\boldsymbol{F}(\\boldsymbol{x},\\boldsymbol{p})``,
+``\boldsymbol{F}(\boldsymbol{x},\boldsymbol{p})``,
 to which we apply a solver based on Newton's method (for root searching) to find the steady-state solution,
 ``\boldsymbol{x}``,
 such that
-``\\boldsymbol{F}(\\boldsymbol{x},\\boldsymbol{p}) = 0``.
-This defines the steady-state solution as an implicit function of the parameters, ``\\boldsymbol{p}``.
-We denote this solution by ``\\boldsymbol{s}(\\boldsymbol{p})``.
-The Newton solver requires the Jacobian, ``\\nabla_{\\boldsymbol{x}}\\boldsymbol{F}``, to update the state iterates.
+``\boldsymbol{F}(\boldsymbol{x},\boldsymbol{p}) = 0``.
+This defines the steady-state solution as an implicit function of the parameters, ``\boldsymbol{p}``.
+We denote this solution by ``\boldsymbol{s}(\boldsymbol{p})``.
+The Newton solver requires the Jacobian, ``\nabla_{\boldsymbol{x}}\boldsymbol{F}``, to update the state iterates.
 Hence, we start by creating the functions `F(x,p)` and `∇ₓF(x,p)`.
 As an example, we use a simple model with only two state variables and two parameters.
+(Note here for simplicity we use the [ForwardDiff](https://github.com/JuliaDiff/ForwardDiff.jl) package to evaluate the Jacobian.)
 
 ```jldoctest usage
 # State function F
@@ -46,7 +47,7 @@ F(x,p) = [
 ∇ₓF (generic function with 1 method)
 ```
 
-We also define a cost function `f(x,p)` (that we wish to minimize under the constraint that ``\\boldsymbol{F}(\\boldsymbol{x},\\boldsymbol{p}) = 0``).
+We also define a cost function `f(x,p)` (that we wish to minimize under the constraint that ``\boldsymbol{F}(\boldsymbol{x},\boldsymbol{p}) = 0``).
 (The F-1 method requires that we provide the derivatives w.r.t. the state, `x`, hence the use of ForwardDiff again for this exmaple.)
 
 ```jldoctest usage
