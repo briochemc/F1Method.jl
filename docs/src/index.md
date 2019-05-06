@@ -43,7 +43,7 @@ F(x,p) = [
 
 # output
 
-F (generic function with 1 method)
+∇ₓF (generic function with 1 method)
 ```
 
 We also define a cost function `f(x,p)` (that we wish to minimize under the constraint that ``\\boldsymbol{F}(\\boldsymbol{x},\\boldsymbol{p}) = 0``).
