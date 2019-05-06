@@ -1,5 +1,5 @@
 
-<img src="/img/Logo_v2.png" alt="logo" title="F1method" align="right" height="200"/>
+<img src="https://user-images.githubusercontent.com/4486578/57202054-3d1c4400-6fe4-11e9-97d7-9a1ffbfcb2fc.png" alt="logo" title="F1method" align="right" height="200"/>
 
 F-1 Method
 ==========
