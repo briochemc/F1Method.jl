@@ -19,12 +19,7 @@ end
 ```
 
 This is an example use of the software.
-We define a state function,
-``\boldsymbol{F}(\boldsymbol{x},\boldsymbol{p})``,
-to which we apply a solver based on Newton's method (for root searching) to find the steady-state solution,
-``\boldsymbol{x}``,
-such that
-``\boldsymbol{F}(\boldsymbol{x},\boldsymbol{p}) = 0``.
+We define a state function, ``\boldsymbol{F}(\boldsymbol{x},\boldsymbol{p})``, to which we apply a solver based on Newton's method (for root searching) to find the steady-state solution, ``\boldsymbol{x}``, such that ``\boldsymbol{F}(\boldsymbol{x},\boldsymbol{p}) = 0``.
 This defines the steady-state solution as an implicit function of the parameters, ``\boldsymbol{p}``.
 We denote this solution by ``\boldsymbol{s}(\boldsymbol{p})``.
 The Newton solver requires the Jacobian, ``\nabla_{\boldsymbol{x}}\boldsymbol{F}``, to update the state iterates.
