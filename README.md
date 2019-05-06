@@ -5,8 +5,8 @@ F-1 Method
 ==========
 
 <p>
-  <a href="https://doi.org/<DOI_number>">
-    <img src="https://zenodo.org/badge/DOI/<DOI_number>.svg" alt="DOI">
+  <a href="https://doi.org/10.5281/zenodo.2667835">
+    <img src="https://zenodo.org/badge/DOI/10.5281/zenodo.2667835.svg" alt="DOI">
   </a>
   <a href="https://briochemc.github.io/F1Method.jl/stable">
     <img src=https://img.shields.io/badge/docs-stable-blue.svg>
