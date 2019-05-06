@@ -10,7 +10,7 @@ F(x,p) = [
 
 # output
 
-F (generic function with 1 method)</code></pre><p>We also define a cost function <code>f(x,p)</code> (that we wish to minimize under the constraint that <span>$\\boldsymbol{F}(\\boldsymbol{x},\\boldsymbol{p}) = 0$</span>). (The F-1 method requires that we provide the derivatives w.r.t. the state, <code>x</code>, hence the use of ForwardDiff again for this exmaple.)</p><pre><code class="language-julia"># Define mismatch function f(x,p) and its derivative ∇ₓf(x,p)
+∇ₓF (generic function with 1 method)</code></pre><p>We also define a cost function <code>f(x,p)</code> (that we wish to minimize under the constraint that <span>$\\boldsymbol{F}(\\boldsymbol{x},\\boldsymbol{p}) = 0$</span>). (The F-1 method requires that we provide the derivatives w.r.t. the state, <code>x</code>, hence the use of ForwardDiff again for this exmaple.)</p><pre><code class="language-julia"># Define mismatch function f(x,p) and its derivative ∇ₓf(x,p)
 # (Note ∇ₓF and ∇ₓf are required by the F1 method)
 function state_mismatch(x)
     δ(x) = x .- 1
