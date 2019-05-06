@@ -79,7 +79,7 @@ To use the F-1 method, the user must:
 
 ## A concrete example
 
-Make sure you have olverloaded `solve` from DiffEqBase
+Make sure you have overloaded `solve` from DiffEqBase
 (an example of how to do this is given in the [documentation](https://briochemc.github.io/F1Method.jl/stable/)).
 Once initial values for the state, `x₀`, and parameters, `p₀`, are chosen, simply initialize the required memory cache, `mem` via
 

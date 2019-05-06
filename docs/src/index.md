@@ -43,7 +43,7 @@ F(x,p) = [
 ```
 
 We also define a cost function `f(x,p)` (that we wish to minimize under the constraint that ``\boldsymbol{F}(\boldsymbol{x},\boldsymbol{p}) = 0``).
-(The F-1 method requires that we provide the derivatives w.r.t. the state, `x`, hence the use of ForwardDiff again for this exmaple.)
+(The F-1 method requires that we provide the derivatives w.r.t. the state, `x`, hence the use of ForwardDiff again for this example.)
 
 ```jldoctest usage
 # Define mismatch function f(x,p) and its derivative ∇ₓf(x,p)
@@ -65,7 +65,7 @@ f(x,p) = state_mismatch(x) + parameter_mismatch(p)
 ```
 
 Once these are set up, we need to let the F-1 method know how to solve for the steady-state.
-We do this by using the DiffEqBase API.
+We do this by using the [DiffEqBase](https://github.com/JuliaDiffEq/DiffEqBase.jl) API.
 For that, we first write a small Newton solver algorithm, we overload the `solve` function from DiffEqBase, and we overload the `SteadyStateProblem` constructor.
 
 ```jldoctest usage
