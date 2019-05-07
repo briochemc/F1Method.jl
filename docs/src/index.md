@@ -125,9 +125,9 @@ Finally, we wrap the objective, gradient, and Hessian functions defined by the F
 # Initialize the cache for storing reusable objects
 mem = F1Method.initialize_mem(x₀, p₀)
 # Define the functions via the F1 method
-F1_objective(p) = F1Method.f̂(f, F, ∇ₓF, mem, p, MyAlg())
-F1_gradient(p) = F1Method.∇f̂(f, F, ∇ₓf, ∇ₓF, mem, p, MyAlg())
-F1_Hessian(p) = F1Method.∇²f̂(f, F, ∇ₓf, ∇ₓF, mem, p, MyAlg())
+F1_objective(p) = F1Method.objective(f, F, ∇ₓF, mem, p, MyAlg())
+F1_gradient(p) = F1Method.gradient(f, F, ∇ₓf, ∇ₓF, mem, p, MyAlg())
+F1_Hessian(p) = F1Method.hessian(f, F, ∇ₓf, ∇ₓF, mem, p, MyAlg())
 
 # output
 

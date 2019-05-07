@@ -93,9 +93,9 @@ wrap the functions into functions of `p` only via
 ```julia
 
 # Wrap the objective, gradient, and Hessian functions
-objective(p) = F1Method.f̂(f, F, ∇ₓF, mem, p, myAlg(); my_options...)
-gradient(p) = F1Method.∇f̂(f, F, ∇ₓf, ∇ₓF, mem, p, myAlg(); my_options...)
-hessian(p) = F1Method.∇²f̂(f, F, ∇ₓf, ∇ₓF, mem, p, myAlg(); my_options...)
+objective(p) = F1Method.objective(f, F, ∇ₓF, mem, p, myAlg(); my_options...)
+gradient(p) = F1Method.gradient(f, F, ∇ₓf, ∇ₓF, mem, p, myAlg(); my_options...)
+hessian(p) = F1Method.hessian(f, F, ∇ₓf, ∇ₓF, mem, p, myAlg(); my_options...)
 ```
 
 and compute the objective, gradient, or Hessian via either of
