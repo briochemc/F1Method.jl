@@ -7,6 +7,11 @@
   <a href="https://doi.org/10.5281/zenodo.2667835">
     <img src="https://zenodo.org/badge/DOI/10.5281/zenodo.2667835.svg" alt="DOI">
   </a>
+  <a href="https://github.com/briochemc/F1Method.jl/blob/master/LICENSE">
+    <img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-yellow.svg">
+  </a>
+</p>
+<p>
   <a href="https://briochemc.github.io/F1Method.jl/stable/">
     <img src=https://img.shields.io/badge/docs-stable-blue.svg>
   </a>
@@ -18,21 +23,16 @@
   <a href="https://travis-ci.com/briochemc/F1Method.jl">
     <img alt="Build Status" src="https://travis-ci.com/briochemc/F1Method.jl.svg?branch=master">
   </a>
-  <a href="https://ci.appveyor.com/project/briochemc/f1method-jl">
-    <img alt="Build Status" src="https://ci.appveyor.com/api/projects/status/prm2xfd6q5pba1om?svg=true">
-  </a>
-</p>
-<p>
   <a href='https://coveralls.io/github/briochemc/F1Method.jl'>
     <img src='https://coveralls.io/repos/github/briochemc/F1Method.jl/badge.svg' alt='Coverage Status' />
   </a>
-  <a href="https://codecov.io/gh/briochemc/F1Method.jl">
-    <img src="https://codecov.io/gh/briochemc/F1Method.jl/branch/master/graph/badge.svg" />
-  </a>
 </p>
 <p>
-  <a href="https://github.com/briochemc/F1Method.jl/blob/master/LICENSE">
-    <img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-yellow.svg">
+  <a href="https://ci.appveyor.com/project/briochemc/f1method-jl">
+    <img alt="Build Status" src="https://ci.appveyor.com/api/projects/status/prm2xfd6q5pba1om?svg=true">
+  </a>
+  <a href="https://codecov.io/gh/briochemc/F1Method.jl">
+    <img src="https://codecov.io/gh/briochemc/F1Method.jl/branch/master/graph/badge.svg" />
   </a>
 </p>
 
