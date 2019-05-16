@@ -64,8 +64,8 @@ The F-1 method is **easy** to use, gives **accurate** results, and is computatio
     (Note these derivatives can be computed numerically, via the [ForwardDiff](https://github.com/JuliaDiff/ForwardDiff.jl) package for example.) 
 - **Accurate** — Thanks to dual and hyperdual numbers, the accuracy of the gradient and Hessian, as computed by the F-1 method, are close to machine precision.
     (The F-1 method uses the [DualNumbers](https://github.com/JuliaDiff/DualNumbers.jl) and [HyperDualNumbers](https://github.com/JuliaDiff/HyperDualNumbers.jl) packages.)
-- **Fast** — The F-1 method is as fast as if you derived and an analytical formulas for every first and second derivatives in *and* used those in the most efficient way.
-    This is because the bottleneck of such computations is the number of matrix factorizations, and the F-1 method only requires a single one (compared to standard autodifferentiation methods that take the steady-state solver as a black box).
+- **Fast** — The F-1 method is as fast as if you derived analytical formulas for every first and second derivatives *and* used those in the most efficient way.
+    This is because the bottleneck of such computations is the number of matrix factorizations, and the F-1 method only requires a single one. In comparison, standard autodifferentiation methods that take the steady-state solver as a black box would require order `m` or `m^2` factorizations, where `m` is the number of parameters.
 
 ## What's needed?
 
