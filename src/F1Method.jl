@@ -33,9 +33,9 @@ function update_mem!(f, F, ∇ₓf, ∇ₓF, mem, p, alg; options...)
     if p ≠ mem.p                      # only update mem if 𝒑 has changed
         update_solution!(F, ∇ₓF, mem, p, alg; options...)
         s, m = mem.s.u, length(p)
-        ∇ₚF = reduce(hcat, [𝔇(F(s, p + ε * e(j,m))) for j in 1:m]) #(18)
+        ∇ₚF = reduce(hcat, [𝔇(F(s, p + ε * e(j,m))) for j in 1:m]) # (2.7)
         mem.A = factorize(∇ₓF(s,p))   # update factors of ∇ₓ𝑭(𝒔,𝒑)
-        mem.∇s .= mem.A \ -∇ₚF        # update ∇𝒔 via (13)
+        mem.∇s .= mem.A \ -∇ₚF        # update ∇𝒔 (2.2)
         mem.∇ₓf .= ∇ₓf(s,p)           # update ∇ₓ𝑓(𝒔,𝒑)
         mem.p = p                     # update 𝒑
     end
@@ -73,8 +73,8 @@ Returns the gradient of the `objective` function using the F-1 method.
 function gradient(f, F, ∇ₓf, ∇ₓF, mem, p, alg; options...)
     update_mem!(f, F, ∇ₓf, ∇ₓF, mem, p, alg; options...)
     s, ∇s, m = mem.s, mem.∇s, length(p)
-    ∇ₚf = [𝔇(f(s,p + ε * e(j,m))) for j in 1:m]'    # (17)
-    return mem.∇ₓf * ∇s + ∇ₚf                       # (12)
+    ∇ₚf = [𝔇(f(s,p + ε * e(j,m))) for j in 1:m]'    # (2.6)
+    return mem.∇ₓf * ∇s + ∇ₚf                       # (2.1)
 end
 
 """
@@ -86,11 +86,11 @@ function hessian(f, F, ∇ₓf, ∇ₓF, mem, p, alg; options...)
     update_mem!(f, F, ∇ₓf, ∇ₓF, mem, p, alg; options...)
     s, A, ∇s, m = mem.s, mem.A, mem.∇s, length(p)
     A⁻ᵀ∇ₓfᵀ = vec(A' \ mem.∇ₓf') # independent of (𝑗,𝑘)
-    H = zeros(m,m)               # preallocate Hessian matrix
+    H, xⱼₖ = zeros(m,m), Vector{Hyper{Float64}}(undef, length(s))
     for j in 1:m, k in j:m       # loop upper triangle (symmetry)
         pⱼₖ = p + ε₁ * e(j,m) + ε₂ * e(k,m)              # hyperdual 𝒑
-        xⱼₖ = s + ε₁ * ∇s * e(j,m) + ε₂ * ∇s * e(k,m)    # hyperdual 𝒙
-        H[j,k] = ℌ(f(xⱼₖ,pⱼₖ)) - ℌ(F(xⱼₖ,pⱼₖ))' * A⁻ᵀ∇ₓfᵀ    # (19)
+        @views xⱼₖ .= s + ε₁ * ∇s[:,j] + ε₂ * ∇s[:,k]    # hyperdual 𝒙
+        H[j,k] = ℌ(f(xⱼₖ,pⱼₖ)) - ℌ(F(xⱼₖ,pⱼₖ))' * A⁻ᵀ∇ₓfᵀ    # (2.8)
         j ≠ k ? H[k,j] = H[j,k] : nothing # Hessian symmetry
     end
     return H

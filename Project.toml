@@ -1,7 +1,7 @@
 name = "F1Method"
 uuid = "d5605bae-6d76-11e9-2fd7-71bcf42edbaa"
 authors = ["Benoit Pasquier <pasquieb@uci.edu>"]
-version = "0.2.0"
+version = "0.2.1"
 
 [deps]
 DiffEqBase = "2b5f629d-d688-5b77-993f-72d75c75574e"
