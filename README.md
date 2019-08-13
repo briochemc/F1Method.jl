@@ -36,7 +36,7 @@
   </a>
 </p>
 
-This package implements the F-1 method described in Pasquier et al. (in preparation).
+This package implements the F-1 method described in *[Pasquier and Primeau](https://www.bpasquier.com/publication/pasquier_primeau_sisc_2019/)* (in review for publication in the *SIAM Journal on Scientific Computing*).
 It allows for efficient quasi-auto-differentiation of an objective function defined implicitly by the solution of a steady-state problem.
 
 Consider a discretized system of nonlinear partial differential equations that takes the form
@@ -54,7 +54,7 @@ objective(p) = f(s(p),p)
 
 where `s(p)` is the steady-state solution of the system, i.e., such that `F(s(p),p) = 0` and where `f(x,p)` is for example a measure of the mismatch between observed state, parameters, and observations.
 Optimizing the model is then simply done by minimizing `objective(p)`.
-(See Pasquier et al., in prep., for more details.)
+(See *[Pasquier and Primeau](https://www.bpasquier.com/publication/pasquier_primeau_sisc_2019/)* (in review for publication in the *SIAM Journal on Scientific Computing*), for more details.)
 
 ## Advantages of the F-1 method
 
@@ -81,11 +81,11 @@ To use the F-1 method, the user must:
 
 Make sure you have overloaded `solve` from DiffEqBase
 (an example of how to do this is given in the [documentation](https://briochemc.github.io/F1Method.jl/stable/)).
-Once initial values for the state, `x₀`, and parameters, `p₀`, are chosen, simply initialize the required memory cache, `mem` via
+Once initial values for the state, `x`, and parameters, `p`, are chosen, simply initialize the required memory cache, `mem` via
 
 ```julia
 # Initialize the cache for storing reusable objects
-mem = F1Method.initialize_mem(x₀, p₀)
+mem = F1Method.initialize_mem(x, p)
 ```
 
 wrap the functions into functions of `p` only via
@@ -101,20 +101,20 @@ hessian(p) = F1Method.hessian(f, F, ∇ₓf, ∇ₓF, mem, p, myAlg(); my_option
 and compute the objective, gradient, or Hessian via either of
 
 ```julia
-objective(p₀)
+objective(p)
 
-gradient(p₀)
+gradient(p)
 
-hessian(p₀)
+hessian(p)
 ```
 
 That's it.
 You were told it was simple, weren't you?
 Now you can test how fast and accurate it is!
-(Or trust our published work, Pasquier et al., in prep.)
+(Or trust our published work, *[Pasquier and Primeau](https://www.bpasquier.com/publication/pasquier_primeau_sisc_2019/)* (in review for publication in the *SIAM Journal on Scientific Computing*).)
 
 ## Citing the software
 
 If you use this package, or implement your own package based on the F-1 method please cite us.
-If you use the F-1 method, please cite our Pasquier et al. (in prep.) publication.
+If you use the F-1 method, please cite *[Pasquier and Primeau](https://www.bpasquier.com/publication/pasquier_primeau_sisc_2019/)* (in review for publication in the *SIAM Journal on Scientific Computing*).
 If you also use this package directly, please cite us using the [CITATION.bib](./CITATION.bib), which contains a bibtex entry for the software.
