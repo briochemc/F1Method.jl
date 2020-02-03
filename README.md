@@ -27,7 +27,7 @@
   </a>
 </p>
 
-This package implements the F-1 algorithm described in *[Pasquier and Primeau](https://www.bpasquier.com/publication/pasquier_primeau_sisc_2019/)* (in review for publication in the *SIAM Journal on Scientific Computing*).
+This package implements the F-1 algorithm described in *[Pasquier and Primeau](https://www.bpasquier.com/publication/pasquier_primeau_sisc_2019/)* (in preparation).
 It allows for efficient quasi-auto-differentiation of an objective function defined implicitly by the solution of a steady-state problem.
 
 Consider a discretized system of nonlinear partial differential equations that takes the form
@@ -45,7 +45,7 @@ objective(p) = f(s(p),p)
 
 where `s(p)` is the steady-state solution of the system, i.e., such that `F(s(p),p) = 0` and where `f(x,p)` is for example a measure of the mismatch between observed state, parameters, and observations.
 Optimizing the model is then simply done by minimizing `objective(p)`.
-(See *[Pasquier and Primeau](https://www.bpasquier.com/publication/pasquier_primeau_sisc_2019/)* (in review for publication in the *SIAM Journal on Scientific Computing*), for more details.)
+(See *[Pasquier and Primeau](https://www.bpasquier.com/publication/pasquier_primeau_sisc_2019/)* (in preparation), for more details.)
 
 ## Advantages of the F-1 algorithm
 
@@ -101,7 +101,7 @@ hessian(p)
 That's it.
 You were told it was simple, weren't you?
 Now you can test how fast and accurate it is!
-(Or trust our published work, *[Pasquier and Primeau](https://www.bpasquier.com/publication/pasquier_primeau_sisc_2019/)* (in review for publication in the *SIAM Journal on Scientific Computing*).)
+(Or trust our published work, *[Pasquier and Primeau](https://www.bpasquier.com/publication/pasquier_primeau_sisc_2019/)* (in preparation).)
 
 ## Citing the software
 
