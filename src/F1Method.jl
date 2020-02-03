@@ -34,7 +34,7 @@ function update_mem!(f, F, ∇ₓf, ∇ₓF, mem, p, alg; options...)
     if p ≠ mem.p                      # only update mem if 𝒑 has changed
         update_solution!(F, ∇ₓF, mem, p, alg; options...)
         s, m = mem.s.u, length(p)
-        ∇ₚF = ForwardDiff.jacobian(p -> F(s,p), p)
+        ∇ₚF = ForwardDiff.jacobian(λ -> F(s,p+λ), zeros(m))
         mem.A = factorize(∇ₓF(s,p))   # update factors of ∇ₓ𝑭(𝒔,𝒑)
         mem.∇s .= mem.A \ -∇ₚF        # update ∇𝒔
         mem.∇ₓf .= ∇ₓf(s,p)           # update ∇ₓ𝑓(𝒔,𝒑)
@@ -74,7 +74,7 @@ Returns the gradient of the `objective` function using the F-1 method.
 function gradient(f, F, ∇ₓf, ∇ₓF, mem, p, alg; options...)
     update_mem!(f, F, ∇ₓf, ∇ₓF, mem, p, alg; options...)
     s, ∇s, m = mem.s, mem.∇s, length(p)
-    ∇ₚf = ForwardDiff.jacobian(p -> [f(s,p)], p)
+    ∇ₚf = ForwardDiff.jacobian(λ -> [f(s,p+λ)], zeros(m))
     return mem.∇ₓf * ∇s + ∇ₚf
 end
 
