@@ -7,7 +7,7 @@ refer to the Equation numbers in the above manuscript. A bibtex
 citation file is available in the GitHub repository.
 ======================================================================#
 
-using LinearAlgebra, DualNumbers, HyperDualNumbers, DiffEqBase
+using LinearAlgebra, ForwardDiff, DiffEqBase
 
 """
     Mem
@@ -21,7 +21,7 @@ Contains
 - `p`   the parameters 𝒑
 The `Mem`-type object should be initialized with `initialize_mem`.
 """
-mutable struct Mem 
+mutable struct Mem
     s     # 𝒔(𝒑)
     A     # factors of 𝐀 = ∇ₓ𝑭(𝒔,𝒑)
     ∇s    # ∇𝒔(𝒑)
@@ -29,13 +29,14 @@ mutable struct Mem
     p     # 𝒑
 end
 
+
 function update_mem!(f, F, ∇ₓf, ∇ₓF, mem, p, alg; options...)
     if p ≠ mem.p                      # only update mem if 𝒑 has changed
         update_solution!(F, ∇ₓF, mem, p, alg; options...)
         s, m = mem.s.u, length(p)
-        ∇ₚF = reduce(hcat, [𝔇(F(s, p + ε * e(j,m))) for j in 1:m]) # (2.7)
+        ∇ₚF = ForwardDiff.jacobian(p -> F(s,p), p)
         mem.A = factorize(∇ₓF(s,p))   # update factors of ∇ₓ𝑭(𝒔,𝒑)
-        mem.∇s .= mem.A \ -∇ₚF        # update ∇𝒔 (2.2)
+        mem.∇s .= mem.A \ -∇ₚF        # update ∇𝒔
         mem.∇ₓf .= ∇ₓf(s,p)           # update ∇ₓ𝑓(𝒔,𝒑)
         mem.p = p                     # update 𝒑
     end
@@ -73,8 +74,8 @@ Returns the gradient of the `objective` function using the F-1 method.
 function gradient(f, F, ∇ₓf, ∇ₓF, mem, p, alg; options...)
     update_mem!(f, F, ∇ₓf, ∇ₓF, mem, p, alg; options...)
     s, ∇s, m = mem.s, mem.∇s, length(p)
-    ∇ₚf = [𝔇(f(s,p + ε * e(j,m))) for j in 1:m]'    # (2.6)
-    return mem.∇ₓf * ∇s + ∇ₚf                       # (2.1)
+    ∇ₚf = ForwardDiff.jacobian(p -> [f(s,p)], p)
+    return mem.∇ₓf * ∇s + ∇ₚf
 end
 
 """
@@ -86,14 +87,8 @@ function hessian(f, F, ∇ₓf, ∇ₓF, mem, p, alg; options...)
     update_mem!(f, F, ∇ₓf, ∇ₓF, mem, p, alg; options...)
     s, A, ∇s, m = mem.s, mem.A, mem.∇s, length(p)
     A⁻ᵀ∇ₓfᵀ = vec(A' \ mem.∇ₓf') # independent of (𝑗,𝑘)
-    H, xⱼₖ = zeros(m,m), Vector{Hyper{Float64}}(undef, length(s))
-    for j in 1:m, k in j:m       # loop upper triangle (symmetry)
-        pⱼₖ = p + ε₁ * e(j,m) + ε₂ * e(k,m)              # hyperdual 𝒑
-        @views xⱼₖ .= s + ε₁ * ∇s[:,j] + ε₂ * ∇s[:,k]    # hyperdual 𝒙
-        H[j,k] = ℌ(f(xⱼₖ,pⱼₖ)) - ℌ(F(xⱼₖ,pⱼₖ))' * A⁻ᵀ∇ₓfᵀ    # (2.8)
-        j ≠ k ? H[k,j] = H[j,k] : nothing # Hessian symmetry
-    end
-    return H
+    H(λ) = f(s+∇s*λ, p+λ) - F(s+∇s*λ, p+λ)' * A⁻ᵀ∇ₓfᵀ
+    return ForwardDiff.hessian(H, zeros(m))
 end
 
 """
@@ -105,9 +100,5 @@ function initialize_mem(x, p)
     n, m = length(x), length(p)
     return Mem(copy(x), nothing, zeros(n,m), zeros(1,n), nothing)
 end
-
-e(j, m) = [i == j for i in 1:m]      # 𝑗th basis vector of ℝᵐ
-𝔇(x) = DualNumbers.dualpart.(x)      # dual part
-ℌ(x) = HyperDualNumbers.ε₁ε₂part.(x) # hyperdual part
 
 end

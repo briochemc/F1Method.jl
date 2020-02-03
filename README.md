@@ -4,35 +4,26 @@
 # F-1 algorithm
 
 <p>
+  <a href="https://briochemc.github.io/F1Method.jl/stable/">
+    <img src=https://img.shields.io/badge/docs-stable-important.svg?style=flat-square&label=Documentation&logo=Read%20the%20Docs>
+  </a>
+</p>
+
+<p>
   <a href="https://doi.org/10.5281/zenodo.2667835">
-    <img src="https://zenodo.org/badge/DOI/10.5281/zenodo.2667835.svg" alt="DOI">
+    <img src="http://img.shields.io/badge/DOI-10.5281%20%2F%20zenodo.2667835-blue.svg?&style=flat-square">
   </a>
   <a href="https://github.com/briochemc/F1Method.jl/blob/master/LICENSE">
-    <img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-yellow.svg">
+    <img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-blue.svg?&style=flat-square">
   </a>
 </p>
-<p>
-  <a href="https://briochemc.github.io/F1Method.jl/stable/">
-    <img src=https://img.shields.io/badge/docs-stable-blue.svg>
-  </a>
-  <a href="https://briochemc.github.io/F1Method.jl/latest/">
-    <img src=https://img.shields.io/badge/docs-dev-blue.svg>
-  </a>
-</p>
+
 <p>
   <a href="https://travis-ci.com/briochemc/F1Method.jl">
-    <img alt="Build Status" src="https://travis-ci.com/briochemc/F1Method.jl.svg?branch=master">
-  </a>
-  <a href='https://coveralls.io/github/briochemc/F1Method.jl'>
-    <img src='https://coveralls.io/repos/github/briochemc/F1Method.jl/badge.svg' alt='Coverage Status' />
-  </a>
-</p>
-<p>
-  <a href="https://ci.appveyor.com/project/briochemc/f1method-jl">
-    <img alt="Build Status" src="https://ci.appveyor.com/api/projects/status/prm2xfd6q5pba1om?svg=true">
+    <img alt="Build Status" src="https://img.shields.io/travis/com/briochemc/F1Method.jl/master?label=OSX/Linux/Windows&logo=travis&logocolor=white&style=flat-square">
   </a>
   <a href="https://codecov.io/gh/briochemc/F1Method.jl">
-    <img src="https://codecov.io/gh/briochemc/F1Method.jl/branch/master/graph/badge.svg" />
+    <img src="https://img.shields.io/codecov/c/github/briochemc/F1Method.jl/master?label=Codecov&logo=codecov&logoColor=white&style=flat-square">
   </a>
 </p>
 
@@ -62,8 +53,7 @@ The F-1 algorithm is **easy** to use, gives **accurate** results, and is computa
 
 - **Easy** — The F-1 algorithm basically just needs the user to provide a solver (for finding the steady-state), the mismatch function, `f`, the state function, `F`, and their derivatives, `∇ₓf` and `∇ₓF` w.r.t. the state `x`. 
     (Note these derivatives can be computed numerically, via the [ForwardDiff](https://github.com/JuliaDiff/ForwardDiff.jl) package for example.) 
-- **Accurate** — Thanks to dual and hyperdual numbers, the accuracy of the gradient and Hessian, as computed by the F-1 algorithm, are close to machine precision.
-    (The F-1 algorithm uses the [DualNumbers](https://github.com/JuliaDiff/DualNumbers.jl) and [HyperDualNumbers](https://github.com/JuliaDiff/HyperDualNumbers.jl) packages.)
+- **Accurate** — Thanks to ForwardDiff's nested dual numbers implementation, the accuracy of the gradient and Hessian, as computed by the F-1 algorithm, are close to machine precision.
 - **Fast** — The F-1 algorithm is as fast as if you derived analytical formulas for every first and second derivatives *and* used those in the most efficient way.
     This is because the bottleneck of such computations is the number of matrix factorizations, and the F-1 algorithm only requires a single one. In comparison, standard autodifferentiation methods that take the steady-state solver as a black box would require order `m` or `m^2` factorizations, where `m` is the number of parameters.
 
