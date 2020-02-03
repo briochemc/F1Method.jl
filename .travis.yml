@@ -17,7 +17,7 @@ codecov: true
 
 jobs:
   allow_failures:
-    - if: julia = nightly
+    - julia: nightly
   include:
     - stage: "Documentation"
       julia: 1.3
