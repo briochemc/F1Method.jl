@@ -11,6 +11,9 @@ using Distributions
 using WorldOceanAtlasTools
 using FiniteDiff
 
+# For CI, make sure the downloads do not hang
+ENV["DATADEPS_ALWAYS_ACCEPT"] = true
+
 # Set up:
 # - overload `SteadyStateProblem` constructor
 # - overload `solve` function
