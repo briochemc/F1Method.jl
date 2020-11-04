@@ -1,7 +1,7 @@
 name = "F1Method"
 uuid = "d5605bae-6d76-11e9-2fd7-71bcf42edbaa"
 authors = ["Benoit Pasquier <pasquieb@uci.edu>"]
-version = "0.3.1"
+version = "0.3.2"
 
 [deps]
 DiffEqBase = "2b5f629d-d688-5b77-993f-72d75c75574e"
@@ -14,7 +14,12 @@ ForwardDiff = "0.10"
 julia = "1.0"
 
 [extras]
+AIBECS = "ace601d6-714c-11e9-04e5-89b7fad23838"
+Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
+FiniteDiff = "6a86dc24-6348-571c-b903-95158fe2bd41"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+Unitful = "1986cc42-f94f-5a68-af5c-568840ba703d"
+WorldOceanAtlasTools = "04f20302-f1b9-11e8-29d9-7d841cb0a64a"
 
 [targets]
-test = ["Test"]
+test = ["Test", "AIBECS", "Unitful", "Distributions", "WorldOceanAtlasTools", "FiniteDiff"]

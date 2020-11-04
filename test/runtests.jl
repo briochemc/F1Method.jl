@@ -1,7 +1,15 @@
 
 using Test, F1Method
 
-using LinearAlgebra, DiffEqBase, ForwardDiff
+using LinearAlgebra
+using DiffEqBase
+using ForwardDiff
+
+using AIBECS
+using Unitful: m, d, s, yr, Myr, mol, mmol, μmol, μM
+using Distributions
+using WorldOceanAtlasTools
+using FiniteDiff
 
 # Set up:
 # - overload `SteadyStateProblem` constructor
@@ -12,5 +20,9 @@ include("simple_setup.jl")
 
 @testset "quasi-Rosenbrock derivative" begin
     include("rosenbrock.jl")
+end
+
+@testset "AIBECS test" begin
+    include("AIBECS_test.jl")
 end
 
