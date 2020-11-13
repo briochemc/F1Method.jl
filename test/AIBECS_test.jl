@@ -34,28 +34,28 @@ import AIBECS: @initial_value, initial_value
 import AIBECS: @flattenable, flattenable, flatten
 const ∞ = Inf
 @initial_value @units @flattenable @limits struct PmodelParameters{U} <: AbstractParameters{U}
-    w₀::U       |  0.64 | m/d      | true | (0,∞)
-    w′::U       |  0.13 | m/d/m    | true | (0,∞)
-    τ_DIP::U    | 230.0 | d        | true | (0,∞)
-    k::U        |  6.62 | μmol/m^3 | true | (0,∞)
-    τ_POP::U    |   5.0 | d        | true | (0,∞)
-    τ_geo::U    |   1.0 | Myr      | true | (0,∞)
-    DIP_geo::U  |  2.12 | mmol/m^3 | true | (-∞,∞)
-    σ::U        |  0.3  | NoUnits  | true | (0,1)
+    w₀::U       |  0.64 | m/d      | true  | (0,∞)
+    w′::U       |  0.13 | m/d/m    | true  | (0,∞)
+    τ_DIP::U    | 230.0 | d        | true  | (0,∞)
+    k::U        |  6.62 | μmol/m^3 | true  | (0,∞)
+    τ_POP::U    |   5.0 | d        | true  | (0,∞)
+    τ_geo::U    |   1.0 | Myr      | false | (0,∞)
+    DIP_geo::U  |  2.12 | mmol/m^3 | true  | (-∞,∞)
+    σ::U        |  0.3  | NoUnits  | true  | (0,1)
 end
 import AIBECS: @prior, prior
 function prior(::Type{T}, s::Symbol) where {T<:AbstractParameters}
     if flattenable(T, s)
-        U = units(T, s)
-        if limits(T, s) == (0,∞)
-            μ = log(ustrip(upreferred(initial_value(T, s) * U)))
+        lb, ub = limits(T, s)
+        if (lb, ub) == (0,∞)
+            μ = log(initial_value(T, s))
             return LogNormal(μ, 1.0)
-        elseif limits(T, s) == (-∞,∞)
-            μ = ustrip(upreferred(initial_value(T, s) * U))
-            σ = ustrip(upreferred(10.0U)) # Assumes that a sensible unit is chosen!
+        elseif (lb, ub) == (-∞,∞)
+            μ = initial_value(T, s)
+            σ = 10.0 # Assumes that a sensible unit is chosen (i.e., that within 10.0 * U)
             return Normal(μ, σ)
-        elseif limits(T, s) == (0,1)
-            return Uniform(0,1)
+        else
+            return LocationScale(lb, ub-lb, LogitNormal()) # <- The LogitNormal works well for Optim?
         end
     else
         return nothing
@@ -79,15 +79,15 @@ sol = solve(prob, CTKAlg()).u
 DIPobs = ustrip(upreferred(WorldOceanAtlasTools.observations("PO₄") * ρSW))
 modify(DIP, POP) = (DIP,)
 ωs = (1.0,) # the weight for the mismatch (weight of POP = 0)
-ωp = 1e-4       # the weight for the parameters prior estimates
+ωp = 1.0       # the weight for the parameters prior estimates
 obs = (DIPobs,)
 𝑓, ∇ₓ𝑓, ∇ₚ𝑓 = generate_objective_and_derivatives(ωs, ωp, grd, modify, obs)
 
 # Now we apply the F1 method
 mem = F1Method.initialize_mem(x, p)
-objective(p) = F1Method.objective(𝑓, 𝐹, ∇ₓ𝐹, mem, p, CTKAlg(), preprint="obj ", τstop=ustrip(u"s", 1e3u"Myr"))
-gradient(p) = F1Method.gradient(𝑓, 𝐹, ∇ₓ𝑓, ∇ₓ𝐹, mem, p, CTKAlg(), preprint="grad", τstop=ustrip(u"s", 1e3u"Myr"))
-hessian(p) = F1Method.hessian(𝑓, 𝐹, ∇ₓ𝑓, ∇ₓ𝐹, mem, p, CTKAlg(), preprint="hess ", τstop=ustrip(u"s", 1e3u"Myr"))
+objective(p) = F1Method.objective(𝑓, 𝐹, ∇ₓ𝐹, mem, p, CTKAlg(), τstop=ustrip(u"s", 1e3u"Myr"))
+gradient(p) = F1Method.gradient(𝑓, 𝐹, ∇ₓ𝑓, ∇ₓ𝐹, mem, p, CTKAlg(), τstop=ustrip(u"s", 1e3u"Myr"))
+hessian(p) = F1Method.hessian(𝑓, 𝐹, ∇ₓ𝑓, ∇ₓ𝐹, mem, p, CTKAlg(), τstop=ustrip(u"s", 1e3u"Myr"))
 
 # and convert p::PmodelParameters to λ::Vector according to AIBECS change of variables
 λ2p = subfun(typeof(p))
@@ -96,24 +96,24 @@ hessian(p) = F1Method.hessian(𝑓, 𝐹, ∇ₓ𝑓, ∇ₓ𝐹, mem, p, CTKAlg
 p2λ = invsubfun(typeof(p))
 λ = p2λ(p)
 function obj(λ)
-    show(λ2p(λ))
     return objective(λ2p(λ))
 end
 function grad(λ)
-    return gradient(λ2p(λ)) * Diagonal(∇λ2p(λ))
+    return gradient(λ2p(λ)) * Diagonal(vec(∇λ2p(λ)))
 end
 function hess(λ)
-    ∇p = Diagonal(∇λ2p(λ)) # for variable change
-    ∇²p = Diagonal(∇²λ2p(λ)) # for variable change
-    G = vec(gradient(λ2p(λ)))
-    H = hessian(λ2p(λ))
-    return ∇p * H * ∇p + Diagonal(G) * ∇²p
+    p = λ2p(λ)
+    ∇p = Diagonal(vec(∇λ2p(λ)))
+    ∇²p = ∇²λ2p(λ)
+    G = gradient(p)
+    H = hessian(p)
+    return ∇p * H * ∇p + Diagonal(vec(G)) * ∇²p
 end
 
 # Finally we test the result with the "reliable" FiniteDiff :)
 λ = p2λ(p)
-@test FiniteDiff.finite_difference_gradient(obj, λ)' ≈ grad(λ) rtol=1e-3
-@test FiniteDiff.finite_difference_hessian(obj, λ) ≈ hess(λ) rtol=1e-3
+@test FiniteDiff.finite_difference_gradient(obj, λ) ≈ grad(λ)' rtol=1e-4
+@test FiniteDiff.finite_difference_hessian(obj, λ) ≈ hess(λ) rtol=1e-4
 
 
 
