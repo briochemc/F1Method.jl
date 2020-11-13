@@ -112,8 +112,8 @@ end
 
 # Finally we test the result with the "reliable" FiniteDiff :)
 λ = p2λ(p)
-@test FiniteDiff.finite_difference_gradient(obj, λ) ≈ grad(λ)' rtol=1e-4
-@test FiniteDiff.finite_difference_hessian(obj, λ) ≈ hess(λ) rtol=1e-4
+@test FiniteDiff.finite_difference_gradient(obj, λ) ≈ grad(λ)' rtol=1e-5
+@test FiniteDiff.finite_difference_hessian(obj, λ) ≈ hess(λ) rtol=1e-3
 
 
 
