@@ -1,6 +1,6 @@
 name = "F1Method"
 uuid = "d5605bae-6d76-11e9-2fd7-71bcf42edbaa"
-authors = ["Benoit Pasquier <pasquieb@uci.edu>"]
+authors = ["Benoit Pasquier <briochemc@gmail.com>"]
 version = "0.4.0"
 
 [deps]
