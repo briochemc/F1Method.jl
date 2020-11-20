@@ -19,11 +19,17 @@
 </p>
 
 <p>
-  <a href="https://travis-ci.com/briochemc/F1Method.jl">
-    <img alt="Build Status" src="https://img.shields.io/travis/com/briochemc/F1Method.jl/master?label=OSX/Linux/Windows&logo=travis&logocolor=white&style=flat-square">
+  <a href="https://github.com/JuliaOcean/F1Method.jl/actions">
+    <img src="https://img.shields.io/github/workflow/status/JuliaOcean/F1Method.jl/Mac%20OS%20X?label=OSX&logo=Apple&logoColor=white&style=flat-square">
   </a>
-  <a href="https://codecov.io/gh/briochemc/F1Method.jl">
-    <img src="https://img.shields.io/codecov/c/github/briochemc/F1Method.jl/master?label=Codecov&logo=codecov&logoColor=white&style=flat-square">
+  <a href="https://github.com/JuliaOcean/F1Method.jl/actions">
+    <img src="https://img.shields.io/github/workflow/status/JuliaOcean/F1Method.jl/Linux?label=Linux&logo=Linux&logoColor=white&style=flat-square">
+  </a>
+  <a href="https://github.com/JuliaOcean/F1Method.jl/actions">
+    <img src="https://img.shields.io/github/workflow/status/JuliaOcean/F1Method.jl/Windows?label=Windows&logo=Windows&logoColor=white&style=flat-square">
+  </a>
+  <a href="https://codecov.io/gh/JuliaOcean/F1Method.jl">
+    <img src="https://img.shields.io/codecov/c/github/JuliaOcean/F1Method.jl/master?label=Codecov&logo=codecov&logoColor=white&style=flat-square">
   </a>
 </p>
 

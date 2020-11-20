@@ -123,7 +123,7 @@ Finally, we wrap the objective, gradient, and Hessian functions defined by the F
 
 ```jldoctest usage
 # Initialize the cache for storing reusable objects
-mem = F1Method.initialize_mem(x₀, p₀)
+mem = F1Method.initialize_mem(F, ∇ₓf, ∇ₓF, x₀, p₀, MyAlg())
 # Define the functions via the F1 method
 F1_objective(p) = F1Method.objective(f, F, ∇ₓF, mem, p, MyAlg())
 F1_gradient(p) = F1Method.gradient(f, F, ∇ₓf, ∇ₓF, mem, p, MyAlg())
