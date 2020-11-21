@@ -81,17 +81,16 @@ Once initial values for the state, `x`, and parameters, `p`, are chosen, simply 
 
 ```julia
 # Initialize the cache for storing reusable objects
-mem = F1Method.initialize_mem(x, p)
+mem = initialize_mem(F, ∇ₓf, ∇ₓF, x, p, alg; options...)
 ```
 
 wrap the functions into functions of `p` only via
 
 ```julia
-
 # Wrap the objective, gradient, and Hessian functions
-objective(p) = F1Method.objective(f, F, ∇ₓF, mem, p, myAlg(); my_options...)
-gradient(p) = F1Method.gradient(f, F, ∇ₓf, ∇ₓF, mem, p, myAlg(); my_options...)
-hessian(p) = F1Method.hessian(f, F, ∇ₓf, ∇ₓF, mem, p, myAlg(); my_options...)
+objective(p) = F1Method.objective(f, F, ∇ₓF, mem, p, alg; options...)
+gradient(p) = F1Method.gradient(f, F, ∇ₓf, ∇ₓF, mem, p, alg; options...)
+hessian(p) = F1Method.hessian(f, F, ∇ₓf, ∇ₓF, mem, p, alg; options...)
 ```
 
 and compute the objective, gradient, or Hessian via either of
@@ -107,10 +106,9 @@ hessian(p)
 That's it.
 You were told it was simple, weren't you?
 Now you can test how fast and accurate it is!
-(Or trust our published work, *[Pasquier and Primeau](https://www.bpasquier.com/publication/pasquier_primeau_sisc_2019/)* (in preparation).)
 
 ## Citing the software
 
 If you use this package, or implement your own package based on the F-1 algorithm please cite us.
-If you use the F-1 algorithm, please cite *[Pasquier and Primeau](https://www.bpasquier.com/publication/pasquier_primeau_sisc_2019/)* (in review for publication in the *SIAM Journal on Scientific Computing*).
-If you also use this package directly, please cite us using the [CITATION.bib](./CITATION.bib), which contains a bibtex entry for the software.
+If you use the F-1 algorithm, please cite *[Pasquier and Primeau](https://www.bpasquier.com/publication/pasquier_primeau_sisc_2019/)* (in prep.).
+If you also use this package directly, please cite it! (Use [the Zenodo link](https://doi.org/10.5281/zenodo.2667835) or the [CITATION.bib file](./CITATION.bib), which contains a bibtex entry.)
