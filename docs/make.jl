@@ -9,4 +9,5 @@ makedocs(
 
 deploydocs(
     repo = "github.com/briochemc/F1Method.jl.git",
+    push_preview = true
 )
