@@ -21,32 +21,32 @@ Contains
 - `p`   the parameters 𝒑
 The `Mem`-type object should be initialized with `initialize_mem`.
 """
-mutable struct Mem
-    s     # 𝒔(𝒑)
-    A     # factors of 𝐀 = ∇ₓ𝑭(𝒔,𝒑)
-    ∇s    # ∇𝒔(𝒑)
-    ∇ₓf   # ∇ₓ𝑓(𝒔,𝒑)
-    p     # 𝒑
+mutable struct Mem{Ts, TA, T∇s, T∇ₓf, Tp}
+    s::Ts     # 𝒔(𝒑)
+    A::TA     # factors of 𝐀 = ∇ₓ𝑭(𝒔,𝒑)
+    ∇s::T∇s   # ∇𝒔(𝒑)
+    ∇ₓf::T∇ₓf # ∇ₓ𝑓(𝒔,𝒑)
+    p::Tp     # 𝒑 that matches all but 𝒔(𝒑)
+    psol::Tp  # 𝒑 that matches 𝒔(𝒑)
 end
 
 
 function update_mem!(f, F, ∇ₓf, ∇ₓF, mem, p, alg; options...)
     if p ≠ mem.p                      # only update mem if 𝒑 has changed
         update_solution!(F, ∇ₓF, mem, p, alg; options...)
-        s, m = mem.s.u, length(p)
-        ∇ₚF = ForwardDiff.jacobian(λ -> F(s,p+λ), zeros(m))
-        mem.A = factorize(∇ₓF(s,p))   # update factors of ∇ₓ𝑭(𝒔,𝒑)
-        mem.∇s .= mem.A \ -∇ₚF        # update ∇𝒔
-        mem.∇ₓf .= ∇ₓf(s,p)           # update ∇ₓ𝑓(𝒔,𝒑)
-        mem.p = p                     # update 𝒑
+        ∇ₚF = ForwardDiff.jacobian(p -> F(mem.s, p), p)
+        mem.A = factorize(∇ₓF(mem.s, p)) # update factors of ∇ₓ𝑭(𝒔,𝒑)
+        mem.∇s .= mem.A \ -∇ₚF           # update ∇𝒔
+        mem.∇ₓf .= ∇ₓf(mem.s, p)         # update ∇ₓ𝑓(𝒔,𝒑)
+        mem.p .= p                  # update 𝒑 for the variables above
     end
 end
 
 function update_solution!(F, ∇ₓF, mem, p, alg; options...)
-    if ~(mem.s isa SteadyStateSolution) || p ≠ mem.s.prob.p
-        mem.s isa SteadyStateSolution ? x = mem.s.u : x = mem.s
-        prob = SteadyStateProblem(F, ∇ₓF, x, p)       # define problem
-        mem.s = solve(prob, alg; options...)          # update 𝒔
+    if p ≠ mem.psol
+        prob = SteadyStateProblem(F, ∇ₓF, mem.s, p) # define problem
+        mem.s .= solve(prob, alg; options...).u      # update 𝒔
+        mem.psol .= p                          # update 𝒑 for 𝒔
     end
 end
 
@@ -63,7 +63,7 @@ The Jacobian, `∇ₓF`, and the memory cache `mem` must be supplied.
 """
 function objective(f, F, ∇ₓF, mem, p, alg; options...)
     update_solution!(F, ∇ₓF, mem, p, alg; options...)
-    return f(mem.s,p)
+    return f(mem.s, p)
 end
 
 """
@@ -74,7 +74,7 @@ Returns the gradient of the `objective` function using the F-1 method.
 function gradient(f, F, ∇ₓf, ∇ₓF, mem, p, alg; options...)
     update_mem!(f, F, ∇ₓf, ∇ₓF, mem, p, alg; options...)
     s, ∇s, m = mem.s, mem.∇s, length(p)
-    ∇ₚf = ForwardDiff.jacobian(λ -> [f(s,p+λ)], zeros(m))
+    ∇ₚf = ForwardDiff.jacobian(p -> [f(s,p)], p)
     return mem.∇ₓf * ∇s + ∇ₚf
 end
 
@@ -96,9 +96,15 @@ end
 
 Initializes the memory cache for the F-1 method.
 """
-function initialize_mem(x, p)
-    n, m = length(x), length(p)
-    return Mem(copy(x), nothing, zeros(n,m), zeros(1,n), nothing)
+function initialize_mem(F, ∇ₓf, ∇ₓF, x, p, alg; options...)
+    x = copy(x)
+    p = copy(p)
+    psol = copy(p)
+    prob = SteadyStateProblem(F, ∇ₓF, x, p)
+    s = solve(prob, alg; options...).u
+    A = factorize(∇ₓF(s, p))
+    ∇ₚF = ForwardDiff.jacobian(p -> F(s, p), p)
+    return Mem(s, A, A \ -∇ₚF, ∇ₓf(s, p), p, psol)
 end
 
 end

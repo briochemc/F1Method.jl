@@ -5,7 +5,7 @@
 
 <p>
   <a href="https://briochemc.github.io/F1Method.jl/stable/">
-    <img src=https://img.shields.io/badge/docs-stable-important.svg?style=flat-square&label=Documentation&logo=Read%20the%20Docs>
+    <img src="https://img.shields.io/github/workflow/status/briochemc/F1Method.jl/Documentation?style=for-the-badge&label=Documentation&logo=Read%20the%20Docs&logoColor=white">
   </a>
 </p>
 
@@ -19,8 +19,14 @@
 </p>
 
 <p>
-  <a href="https://travis-ci.com/briochemc/F1Method.jl">
-    <img alt="Build Status" src="https://img.shields.io/travis/com/briochemc/F1Method.jl/master?label=OSX/Linux/Windows&logo=travis&logocolor=white&style=flat-square">
+  <a href="https://github.com/briochemc/F1Method.jl/actions">
+    <img src="https://img.shields.io/github/workflow/status/briochemc/F1Method.jl/Mac%20OS%20X?label=OSX&logo=Apple&logoColor=white&style=flat-square">
+  </a>
+  <a href="https://github.com/briochemc/F1Method.jl/actions">
+    <img src="https://img.shields.io/github/workflow/status/briochemc/F1Method.jl/Linux?label=Linux&logo=Linux&logoColor=white&style=flat-square">
+  </a>
+  <a href="https://github.com/briochemc/F1Method.jl/actions">
+    <img src="https://img.shields.io/github/workflow/status/briochemc/F1Method.jl/Windows?label=Windows&logo=Windows&logoColor=white&style=flat-square">
   </a>
   <a href="https://codecov.io/gh/briochemc/F1Method.jl">
     <img src="https://img.shields.io/codecov/c/github/briochemc/F1Method.jl/master?label=Codecov&logo=codecov&logoColor=white&style=flat-square">
@@ -75,17 +81,16 @@ Once initial values for the state, `x`, and parameters, `p`, are chosen, simply 
 
 ```julia
 # Initialize the cache for storing reusable objects
-mem = F1Method.initialize_mem(x, p)
+mem = initialize_mem(F, ∇ₓf, ∇ₓF, x, p, alg; options...)
 ```
 
 wrap the functions into functions of `p` only via
 
 ```julia
-
 # Wrap the objective, gradient, and Hessian functions
-objective(p) = F1Method.objective(f, F, ∇ₓF, mem, p, myAlg(); my_options...)
-gradient(p) = F1Method.gradient(f, F, ∇ₓf, ∇ₓF, mem, p, myAlg(); my_options...)
-hessian(p) = F1Method.hessian(f, F, ∇ₓf, ∇ₓF, mem, p, myAlg(); my_options...)
+objective(p) = F1Method.objective(f, F, ∇ₓF, mem, p, alg; options...)
+gradient(p) = F1Method.gradient(f, F, ∇ₓf, ∇ₓF, mem, p, alg; options...)
+hessian(p) = F1Method.hessian(f, F, ∇ₓf, ∇ₓF, mem, p, alg; options...)
 ```
 
 and compute the objective, gradient, or Hessian via either of
@@ -101,10 +106,9 @@ hessian(p)
 That's it.
 You were told it was simple, weren't you?
 Now you can test how fast and accurate it is!
-(Or trust our published work, *[Pasquier and Primeau](https://www.bpasquier.com/publication/pasquier_primeau_sisc_2019/)* (in preparation).)
 
 ## Citing the software
 
 If you use this package, or implement your own package based on the F-1 algorithm please cite us.
-If you use the F-1 algorithm, please cite *[Pasquier and Primeau](https://www.bpasquier.com/publication/pasquier_primeau_sisc_2019/)* (in review for publication in the *SIAM Journal on Scientific Computing*).
-If you also use this package directly, please cite us using the [CITATION.bib](./CITATION.bib), which contains a bibtex entry for the software.
+If you use the F-1 algorithm, please cite *[Pasquier and Primeau](https://www.bpasquier.com/publication/pasquier_primeau_sisc_2019/)* (in prep.).
+If you also use this package directly, please cite it! (Use [the Zenodo link](https://doi.org/10.5281/zenodo.2667835) or the [CITATION.bib file](./CITATION.bib), which contains a bibtex entry.)
