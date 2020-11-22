@@ -5,7 +5,6 @@
 
 <p>
   <a href="https://briochemc.github.io/F1Method.jl/stable/">
-    <img src=https://img.shields.io/badge/docs-stable-important.svg?style=flat-square&label=Documentation&logo=Read%20the%20Docs>
     <img src="https://img.shields.io/github/workflow/status/briochemc/F1Method.jl/Documentation?style=for-the-badge&label=Documentation&logo=Read%20the%20Docs&logoColor=white">
   </a>
 </p>
