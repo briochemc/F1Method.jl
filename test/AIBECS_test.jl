@@ -58,16 +58,18 @@ function prior(::Type{T}, s::Symbol) where {T<:AbstractParameters}
         lb, ub = limits(T, s)
         if (lb, ub) == (0,∞)
             μ = log(initial_value(T, s))
-            return LogNormal(μ, 1.0)
+            LogNormal(μ, 1.0)
         elseif (lb, ub) == (-∞,∞)
             μ = initial_value(T, s)
             σ = 10.0 # Assumes that a sensible unit is chosen (i.e., that within 10.0 * U)
-            return Normal(μ, σ)
-        else
-            return LocationScale(lb, ub-lb, LogitNormal()) # <- The LogitNormal works well for Optim?
+            Distributions.Normal(μ, σ)
+        else # LogitNormal with median as initial value and bounds
+            m = initial_value(T, s)
+            f = (m - lb) / (ub - lb)
+            LocationScale(lb, ub - lb, LogitNormal(log(f/(1-f)), 1.0))
         end
     else
-        return nothing
+        nothing
     end
 end
 prior(::T, s::Symbol) where {T<:AbstractParameters} = prior(T,s)
@@ -86,11 +88,14 @@ sol = solve(prob, CTKAlg())
 # AIBECS model mismatch with observations
 # and generate the objective function
 ρSW = 1.035u"kg/L" # approximate mean sea water density
-DIPobs = ustrip(upreferred(WorldOceanAtlasTools.observations("PO₄") * ρSW))
+obs = let
+    obs = WorldOceanAtlasTools.observations("phosphate")
+    obs.value = ustrip.(upreferred.(obs.phosphate * ρSW))
+    (obs,)
+end
 modify(DIP, POP) = (DIP,)
 ωs = (1.0,) # the weight for the mismatch (weight of POP = 0)
 ωp = 1.0       # the weight for the parameters prior estimates
-obs = (DIPobs,)
 f, ∇ₓf = f_and_∇ₓf(ωs, ωp, grd, modify, obs, PmodelParameters)
 
 # Now we apply the F1 method
