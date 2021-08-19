@@ -1,0 +1,37 @@
+{
+    "language": "eng",
+    "license": "MIT",
+    "upload_type": "software",
+    "title": "F1Method.jl: A julia package to autodifferentiate through a steady-state solver",
+    "creators": [
+        {
+            "orcid": "0000-0002-3838-5976",
+            "affiliation": "previously UCI, now at USC",
+            "name": "Benoit Pasquier"
+        }
+    ],
+    "keywords": [
+        "julia",
+        "optimization",
+        "model",
+        "modeling",
+        "modelling",
+        "models",
+        "ocean",
+        "transport",
+        "oceanography",
+        "global",
+        "tracer",
+        "differentiation",
+        "autodifferentiation",
+        "autodiff",
+        "forwarddiff",
+        "derivative",
+        "gradient",
+        "hessian",
+        "inverse-model",
+        "biogeochemical-model",
+        "ocean-circulation",
+        "marine-tracer"
+    ]
+}
