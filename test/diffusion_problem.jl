@@ -3,7 +3,7 @@ using Test, FormulaOneMethod
 
 #@testset "Testing in a diffusion system" begin
 
-    using LinearAlgebra, SparseArrays, SuiteSparse, DiffEqBase, FormulaOneMethod
+    using LinearAlgebra, SparseArrays, SuiteSparse, SciMLBase, FormulaOneMethod
 
     # 2D Laplacian
     function laplacian_2D(nx, ny, k)
@@ -64,31 +64,31 @@ using Test, FormulaOneMethod
     end
 
     # Create a type for the solver's algorithm
-    struct MyAlg <: DiffEqBase.AbstractSteadyStateAlgorithm end
+    struct MyAlg <: SciMLBase.AbstractSteadyStateAlgorithm end
 
-    # Overload DiffEqBase's solve function
-    function DiffEqBase.solve(prob::DiffEqBase.AbstractSteadyStateProblem,
+    # Overload SciMLBase's solve function
+    function SciMLBase.solve(prob::SciMLBase.AbstractSteadyStateProblem,
                               alg::MyAlg;
                               Ftol=1e-10)
-        # Define the functions according to DiffEqBase.SteadyStateProblem type
+        # Define the functions according to SciMLBase.SteadyStateProblem type
         p = prob.p
         t = 0
         x0 = copy(prob.u0)
         dx, df = copy(x0), copy(x0)
         F(x) = prob.f(dx, x, p, t)
         ∇ₓF(x) = prob.f(df, dx, x, p, t)
-        # Compute `u_steady` and `resid` as per DiffEqBase using my algorithm
+        # Compute `u_steady` and `resid` as per SciMLBase using my algorithm
         x_steady = newton_solve(F, x0, Ftol=Ftol)
         resid = F(x_steady)
-        # Return the common DiffEqBase solution type
-        DiffEqBase.build_solution(prob, alg, x_steady, resid; retcode=:Success)
+        # Return the common SciMLBase solution type
+        SciMLBase.build_solution(prob, alg, x_steady, resid; retcode=:Success)
     end
 
-    # Overload DiffEqBase's SteadyStateProblem constructor
-    function DiffEqBase.SteadyStateProblem(F, x, p)
+    # Overload SciMLBase's SteadyStateProblem constructor
+    function SciMLBase.SteadyStateProblem(F, x, p)
         f(dx, x, p, t) = F(x, p)
         f(df, dx, x, p, t) = ∇ₓF(x, p)
-        return DiffEqBase.SteadyStateProblem(f, x, p)
+        return SciMLBase.SteadyStateProblem(f, x, p)
     end
 
     # Define objective function f(x,p) and ∇ₓf(x,p)

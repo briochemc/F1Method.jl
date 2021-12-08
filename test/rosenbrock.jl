@@ -5,7 +5,7 @@ module SubModuleRosenBrock
 using Test
 using F1Method
 using LinearAlgebra
-using DiffEqBase
+using SciMLBase
 using ForwardDiff
 
 # Set up:
@@ -22,23 +22,23 @@ function newton_solve(F, ∇ₓF, x; Ftol=1e-10)
 end
 
 # Create a type for the solver's algorithm
-struct MyAlg <: DiffEqBase.AbstractSteadyStateAlgorithm end
+struct MyAlg <: SciMLBase.AbstractSteadyStateAlgorithm end
 
-# Overload DiffEqBase's solve function
-function DiffEqBase.solve(prob::DiffEqBase.AbstractSteadyStateProblem,
+# Overload SciMLBase's solve function
+function SciMLBase.solve(prob::SciMLBase.AbstractSteadyStateProblem,
                           alg::MyAlg;
                           Ftol=1e-10)
-    # Define the functions according to DiffEqBase.SteadyStateProblem type
+    # Define the functions according to SciMLBase.SteadyStateProblem type
     p = prob.p
     x0 = copy(prob.u0)
     dx, df = copy(x0), copy(x0)
     F(x) = prob.f(x, p)
     ∇ₓF(x) = prob.f.jac(x, p)
-    # Compute `u_steady` and `resid` as per DiffEqBase using my algorithm
+    # Compute `u_steady` and `resid` as per SciMLBase using my algorithm
     x_steady = newton_solve(F, ∇ₓF, x0, Ftol=Ftol)
     resid = F(x_steady)
-    # Return the common DiffEqBase solution type
-    DiffEqBase.build_solution(prob, alg, x_steady, resid; retcode=:Success)
+    # Return the common SciMLBase solution type
+    SciMLBase.build_solution(prob, alg, x_steady, resid; retcode=:Success)
 end
 
 
