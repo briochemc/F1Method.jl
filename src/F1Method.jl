@@ -7,7 +7,7 @@ refer to the Equation numbers in the above manuscript. A bibtex
 citation file is available in the GitHub repository.
 ======================================================================#
 
-using LinearAlgebra, ForwardDiff, DiffEqBase
+using LinearAlgebra, ForwardDiff, SciMLBase
 
 """
     Mem

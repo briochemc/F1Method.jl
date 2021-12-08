@@ -70,12 +70,12 @@ A requirement of the F-1 algorithm is that the Jacobian matrix `A = ∇ₓF` can
 To use the F-1 algorithm, the user must:
 
 - Make sure that there is a suitable algorithm `alg` to solve the steady-state equation
-- overload the `solve` function and the `SteadyStateProblem` constructor from [DiffEqBase](https://github.com/JuliaDiffEq/DiffEqBase.jl). (An example is given in the CI tests — see, e.g., the [`test/simple_setup.jl`](test/simple_setup.jl) file.)
+- overload the `solve` function and the `SteadyStateProblem` constructor from [SciMLBase](https://github.com/JuliaDiffEq/SciMLBase.jl). (An example is given in the CI tests — see, e.g., the [`test/simple_setup.jl`](test/simple_setup.jl) file.)
 - Provide the derivatives of `f` and `F` with respect to the state, `x`.
 
 ## A concrete example
 
-Make sure you have overloaded `solve` from DiffEqBase
+Make sure you have overloaded `solve` from SciMLBase
 (an example of how to do this is given in the [documentation](https://briochemc.github.io/F1Method.jl/stable/)).
 Once initial values for the state, `x`, and parameters, `p`, are chosen, simply initialize the required memory cache, `mem` via
 

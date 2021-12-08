@@ -14,7 +14,7 @@ In this case, there are a number of shortcuts that can be leveraged.
 ```@meta
 DocTestSetup = quote
     using F1Method
-    using LinearAlgebra, DiffEqBase, ForwardDiff
+    using LinearAlgebra, SciMLBase, ForwardDiff
 end
 ```
 
@@ -63,8 +63,8 @@ f(x,p) = state_mismatch(x) + parameter_mismatch(p)
 ```
 
 Once these are set up, we need to let the F-1 method know how to solve for the steady-state.
-We do this by using the [DiffEqBase](https://github.com/SciML/DiffEqBase.jl) API.
-For that, we first write a small Newton solver algorithm, we overload the `solve` function from DiffEqBase, and we overload the `SteadyStateProblem` constructor.
+We do this by using the [SciMLBase](https://github.com/SciML/SciMLBase.jl) API.
+For that, we first write a small Newton solver algorithm, we overload the `solve` function from SciMLBase, and we overload the `SteadyStateProblem` constructor.
 
 ```jldoctest usage
 function newton_solve(F, ∇ₓF, x; Ftol=1e-10)
@@ -75,23 +75,23 @@ function newton_solve(F, ∇ₓF, x; Ftol=1e-10)
 end
 
 # Create a type for the solver's algorithm
-struct MyAlg <: DiffEqBase.AbstractSteadyStateAlgorithm end
+struct MyAlg <: SciMLBase.AbstractSteadyStateAlgorithm end
 
-# Overload DiffEqBase's solve function
-function DiffEqBase.solve(prob::DiffEqBase.AbstractSteadyStateProblem,
+# Overload SciMLBase's solve function
+function SciMLBase.solve(prob::SciMLBase.AbstractSteadyStateProblem,
                           alg::MyAlg;
                           Ftol=1e-10)
-    # Define the functions according to DiffEqBase.SteadyStateProblem type
+    # Define the functions according to SciMLBase.SteadyStateProblem type
     p = prob.p
     x0 = copy(prob.u0)
     dx, df = copy(x0), copy(x0)
     F(x) = prob.f(x, p)
     ∇ₓF(x) = prob.f.jac(x, p)
-    # Compute `u_steady` and `resid` as per DiffEqBase using my algorithm
+    # Compute `u_steady` and `resid` as per SciMLBase using my algorithm
     x_steady = newton_solve(F, ∇ₓF, x0, Ftol=Ftol)
     resid = F(x_steady)
-    # Return the common DiffEqBase solution type
-    DiffEqBase.build_solution(prob, alg, x_steady, resid; retcode=:Success)
+    # Return the common SciMLBase solution type
+    SciMLBase.build_solution(prob, alg, x_steady, resid; retcode=:Success)
 end
 
 # output
