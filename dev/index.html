@@ -23,7 +23,7 @@ f(x,p) = state_mismatch(x) + parameter_mismatch(p)
 
 # output
 
-∇ₓf (generic function with 1 method)</code></pre><p>Once these are set up, we need to let the F-1 method know how to solve for the steady-state. We do this by using the <a href="https://github.com/SciML/DiffEqBase.jl">DiffEqBase</a> API. For that, we first write a small Newton solver algorithm, we overload the <code>solve</code> function from DiffEqBase, and we overload the <code>SteadyStateProblem</code> constructor.</p><pre><code class="language-julia hljs">function newton_solve(F, ∇ₓF, x; Ftol=1e-10)
+∇ₓf (generic function with 1 method)</code></pre><p>Once these are set up, we need to let the F-1 method know how to solve for the steady-state. We do this by using the <a href="https://github.com/SciML/SciMLBase.jl">SciMLBase</a> API. For that, we first write a small Newton solver algorithm, we overload the <code>solve</code> function from SciMLBase, and we overload the <code>SteadyStateProblem</code> constructor.</p><pre><code class="language-julia hljs">function newton_solve(F, ∇ₓF, x; Ftol=1e-10)
     while norm(F(x)) ≥ Ftol
         x .-= ∇ₓF(x) \ F(x)
     end
@@ -31,23 +31,23 @@ f(x,p) = state_mismatch(x) + parameter_mismatch(p)
 end
 
 # Create a type for the solver&#39;s algorithm
-struct MyAlg &lt;: DiffEqBase.AbstractSteadyStateAlgorithm end
+struct MyAlg &lt;: SciMLBase.AbstractSteadyStateAlgorithm end
 
-# Overload DiffEqBase&#39;s solve function
-function DiffEqBase.solve(prob::DiffEqBase.AbstractSteadyStateProblem,
+# Overload SciMLBase&#39;s solve function
+function SciMLBase.solve(prob::SciMLBase.AbstractSteadyStateProblem,
                           alg::MyAlg;
                           Ftol=1e-10)
-    # Define the functions according to DiffEqBase.SteadyStateProblem type
+    # Define the functions according to SciMLBase.SteadyStateProblem type
     p = prob.p
     x0 = copy(prob.u0)
     dx, df = copy(x0), copy(x0)
     F(x) = prob.f(x, p)
     ∇ₓF(x) = prob.f.jac(x, p)
-    # Compute `u_steady` and `resid` as per DiffEqBase using my algorithm
+    # Compute `u_steady` and `resid` as per SciMLBase using my algorithm
     x_steady = newton_solve(F, ∇ₓF, x0, Ftol=Ftol)
     resid = F(x_steady)
-    # Return the common DiffEqBase solution type
-    DiffEqBase.build_solution(prob, alg, x_steady, resid; retcode=:Success)
+    # Return the common SciMLBase solution type
+    SciMLBase.build_solution(prob, alg, x_steady, resid; retcode=:Success)
 end
 
 # output
@@ -80,4 +80,4 @@ F1_Hessian (generic function with 1 method)</code></pre><p>We can now use these 
 
 2×2 Array{Float64,2}:
  52.989   0.0
-  0.0    -0.0241434</code></pre><h1 id="Future"><a class="docs-heading-anchor" href="#Future">Future</a><a id="Future-1"></a><a class="docs-heading-anchor-permalink" href="#Future" title="Permalink"></a></h1><p>This package is likely not in its final form. The API was just changed in v0.5 (to match the API changes in AIBECS.jl v0.11). That being said, ultimately, it would make sense for the shortcuts used here to be integrated into a package like ChainRules.jl. For the time being, AIBECS users can use F1Method.jl to speed up their optimizations.</p></article><nav class="docs-footer"><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.10 on <span class="colophon-date" title="Wednesday 8 December 2021 02:09">Wednesday 8 December 2021</span>. Using Julia version 1.7.0.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+  0.0    -0.0241434</code></pre><h1 id="Future"><a class="docs-heading-anchor" href="#Future">Future</a><a id="Future-1"></a><a class="docs-heading-anchor-permalink" href="#Future" title="Permalink"></a></h1><p>This package is likely not in its final form. The API was just changed in v0.5 (to match the API changes in AIBECS.jl v0.11). That being said, ultimately, it would make sense for the shortcuts used here to be integrated into a package like ChainRules.jl. For the time being, AIBECS users can use F1Method.jl to speed up their optimizations.</p></article><nav class="docs-footer"><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.10 on <span class="colophon-date" title="Wednesday 8 December 2021 22:07">Wednesday 8 December 2021</span>. Using Julia version 1.7.0.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
