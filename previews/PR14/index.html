@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>F1Method.jl Documentation · F1Method Documentation</title><script data-outdated-warner src="assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.039/juliamono-regular.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.13.11/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="assets/documenter.js"></script><script src="siteinfo.js"></script><script src="../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href>F1Method Documentation</a></span></div><form class="docs-search" action="search/"><input class="docs-search-query" id="documenter-search-query" name="q" type="text" placeholder="Search docs"/></form><ul class="docs-menu"><li class="is-active"><a class="tocitem" href>F1Method.jl Documentation</a><ul class="internal"><li><a class="tocitem" href="#Why-the-F-1-method?"><span>Why the F-1 method?</span></a></li><li><a class="tocitem" href="#Usage"><span>Usage</span></a></li><li class="toplevel"><a class="tocitem" href="#Future"><span>Future</span></a></li></ul></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><nav class="breadcrumb"><ul class="is-hidden-mobile"><li class="is-active"><a href>F1Method.jl Documentation</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>F1Method.jl Documentation</a></li></ul></nav><div class="docs-right"><a class="docs-edit-link" href="https://github.com/briochemc/F1Method.jl/blob/master/docs/src/index.md" title="Edit on GitHub"><span class="docs-icon fab"></span><span class="docs-label is-hidden-touch">Edit on GitHub</span></a><a class="docs-settings-button fas fa-cog" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-sidebar-button fa fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a></div></header><article class="content" id="documenter-page"><h1 id="F1Method.jl-Documentation"><a class="docs-heading-anchor" href="#F1Method.jl-Documentation">F1Method.jl Documentation</a><a id="F1Method.jl-Documentation-1"></a><a class="docs-heading-anchor-permalink" href="#F1Method.jl-Documentation" title="Permalink"></a></h1><p>This package provides an efficient tool to compute gradient and Hessian matrix of an objective function implicitly defined by the solution of a steady-state problem.</p><h2 id="Why-the-F-1-method?"><a class="docs-heading-anchor" href="#Why-the-F-1-method?">Why the F-1 method?</a><a id="Why-the-F-1-method?-1"></a><a class="docs-heading-anchor-permalink" href="#Why-the-F-1-method?" title="Permalink"></a></h2><p>When using Newton-type algorithms for optimization, computing the gradient and Hessian can be computationally expensive. A typical scientific application is to optimize the parameters of a model which solves for a root through another iterative Newton-like algorithm. In this case, there are a number of shortcuts that can be leveraged.</p><h2 id="Usage"><a class="docs-heading-anchor" href="#Usage">Usage</a><a id="Usage-1"></a><a class="docs-heading-anchor-permalink" href="#Usage" title="Permalink"></a></h2><p>This is an example use of the software. We define a state function, <span>$\boldsymbol{F}(\boldsymbol{x},\boldsymbol{p})$</span>, to which we apply a solver based on Newton&#39;s method (for root searching) to find the steady-state solution, <span>$\boldsymbol{x}$</span>, such that <span>$\boldsymbol{F}(\boldsymbol{x},\boldsymbol{p}) = 0$</span>. This defines the steady-state solution as an implicit function of the parameters, <span>$\boldsymbol{p}$</span>. We denote this solution by <span>$\boldsymbol{s}(\boldsymbol{p})$</span>. The Newton solver requires the Jacobian, <span>$\nabla_{\boldsymbol{x}}\boldsymbol{F}$</span>, to update the state iterates. Hence, we start by creating the functions <code>F(x,p)</code> and <code>∇ₓF(x,p)</code>. As an example, we use a simple model with only two state variables and two parameters. (Note here for simplicity we use the <a href="https://github.com/JuliaDiff/ForwardDiff.jl">ForwardDiff</a> package to evaluate the Jacobian.)</p><pre><code class="language-julia hljs"># State function F
+statefun(x,p) = [
+    -2 * (p[1] - x[1]) - 4 * p[2] * (x[2] - x[1]^2) * x[1]
+    p[2] * (x[2] - x[1]^2)
+]
+F = ODEFunction(statefun, jac = (x,p) -&gt; ForwardDiff.jacobian(x -&gt; statefun(x, p), x))
+
+# output
+
+(::ODEFunction{false, typeof(statefun), UniformScaling{Bool}, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, typeof(SciMLBase.DEFAULT_OBSERVED), Nothing}) (generic function with 7 methods)</code></pre><p>We also define a cost function <code>f(x,p)</code> (that we wish to minimize under the constraint that <span>$\boldsymbol{F}(\boldsymbol{x},\boldsymbol{p}) = 0$</span>). (The F-1 method requires that we provide the derivatives w.r.t. the state, <code>x</code>, hence the use of ForwardDiff again for this example.)</p><pre><code class="language-julia hljs"># Define mismatch function f(x,p) and its derivative ∇ₓf(x,p)
+# (Note ∇ₓF and ∇ₓf are required by the F1 method)
+function state_mismatch(x)
+    δ(x) = x .- 1
+    return 0.5δ(x)&#39;δ(x)
+end
+function parameter_mismatch(p)
+    δ(p) = log.(p)
+    return 0.5δ(p)&#39;δ(p)
+end
+f(x,p) = state_mismatch(x) + parameter_mismatch(p)
+∇ₓf(x,p) = ForwardDiff.jacobian(x -&gt; [f(x,p)], x)
+
+# output
+
+∇ₓf (generic function with 1 method)</code></pre><p>Once these are set up, we need to let the F-1 method know how to solve for the steady-state. We do this by using the <a href="https://github.com/SciML/SciMLBase.jl">SciMLBase</a> API. For that, we first write a small Newton solver algorithm, we overload the <code>solve</code> function from SciMLBase, and we overload the <code>SteadyStateProblem</code> constructor.</p><pre><code class="language-julia hljs">function newton_solve(F, ∇ₓF, x; Ftol=1e-10)
+    while norm(F(x)) ≥ Ftol
+        x .-= ∇ₓF(x) \ F(x)
+    end
+    return x
+end
+
+# Create a type for the solver&#39;s algorithm
+struct MyAlg &lt;: SciMLBase.AbstractSteadyStateAlgorithm end
+
+# Overload SciMLBase&#39;s solve function
+function SciMLBase.solve(prob::SciMLBase.AbstractSteadyStateProblem,
+                          alg::MyAlg;
+                          Ftol=1e-10)
+    # Define the functions according to SciMLBase.SteadyStateProblem type
+    p = prob.p
+    x0 = copy(prob.u0)
+    dx, df = copy(x0), copy(x0)
+    F(x) = prob.f(x, p)
+    ∇ₓF(x) = prob.f.jac(x, p)
+    # Compute `u_steady` and `resid` as per SciMLBase using my algorithm
+    x_steady = newton_solve(F, ∇ₓF, x0, Ftol=Ftol)
+    resid = F(x_steady)
+    # Return the common SciMLBase solution type
+    SciMLBase.build_solution(prob, alg, x_steady, resid; retcode=:Success)
+end
+
+# output
+
+</code></pre><p>We chose an initial value for the state, <code>x</code>, and the parameters, <code>p</code>:</p><pre><code class="language-julia hljs">x₀, p₀ = [1.0, 2.0], [3.0, 4.0]
+
+# output
+
+([1.0, 2.0], [3.0, 4.0])</code></pre><p>Finally, we wrap the objective, gradient, and Hessian functions defined by the F-1 method.</p><pre><code class="language-julia hljs"># Initialize the cache for storing reusable objects
+mem = F1Method.initialize_mem(F, ∇ₓf, x₀, p₀, MyAlg())
+# Define the functions via the F1 method
+F1_objective(p) = F1Method.objective(f, F, mem, p, MyAlg())
+F1_gradient(p) = F1Method.gradient(f, F, ∇ₓf, mem, p, MyAlg())
+F1_Hessian(p) = F1Method.hessian(f, F, ∇ₓf, mem, p, MyAlg())
+
+# output
+
+F1_Hessian (generic function with 1 method)</code></pre><p>We can now use these directly to compute objective, gradient, and Hessian:</p><pre><code class="language-julia hljs">F1_objective(p₀)
+
+# output
+
+35.56438050824269</code></pre><pre><code class="language-julia hljs">F1_gradient(p₀)
+
+# output
+
+1×2 Array{Float64,2}:
+ 50.3662  0.346574</code></pre><pre><code class="language-julia hljs">F1_Hessian(p₀)
+
+# output
+
+2×2 Array{Float64,2}:
+ 52.989   0.0
+  0.0    -0.0241434</code></pre><h1 id="Future"><a class="docs-heading-anchor" href="#Future">Future</a><a id="Future-1"></a><a class="docs-heading-anchor-permalink" href="#Future" title="Permalink"></a></h1><p>This package is likely not in its final form. The API was just changed in v0.5 (to match the API changes in AIBECS.jl v0.11). That being said, ultimately, it would make sense for the shortcuts used here to be integrated into a package like ChainRules.jl. For the time being, AIBECS users can use F1Method.jl to speed up their optimizations.</p></article><nav class="docs-footer"><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.10 on <span class="colophon-date" title="Wednesday 8 December 2021 21:51">Wednesday 8 December 2021</span>. Using Julia version 1.7.0.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
