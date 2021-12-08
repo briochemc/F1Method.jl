@@ -7,7 +7,7 @@ This package provides an efficient tool to compute gradient and Hessian matrix o
 When using Newton-type algorithms for optimization, computing the gradient and Hessian can be computationally expensive.
 A typical scientific application is to optimize the parameters of a model which solves for a root through another iterative Newton-like algorithm.
 In this case, there are a number of shortcuts that can be leveraged.
-This was the motivation for the work of [Pasquier et al. (2019, in preparation)](), and for this package.
+
 
 ## Usage
 
@@ -29,17 +29,15 @@ As an example, we use a simple model with only two state variables and two param
 
 ```jldoctest usage
 # State function F
-F(x,p) = [
+statefun(x,p) = [
     -2 * (p[1] - x[1]) - 4 * p[2] * (x[2] - x[1]^2) * x[1]
     p[2] * (x[2] - x[1]^2)
 ]
-
-# Jacobian of F wrt p
-∇ₓF(x,p) = ForwardDiff.jacobian(x -> F(x,p), x)
+F = ODEFunction(statefun, jac = (x,p) -> ForwardDiff.jacobian(x -> statefun(x, p), x))
 
 # output
 
-∇ₓF (generic function with 1 method)
+(::ODEFunction{false, typeof(statefun), UniformScaling{Bool}, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, typeof(SciMLBase.DEFAULT_OBSERVED), Nothing}) (generic function with 7 methods)
 ```
 
 We also define a cost function `f(x,p)` (that we wish to minimize under the constraint that ``\boldsymbol{F}(\boldsymbol{x},\boldsymbol{p}) = 0``).
@@ -65,7 +63,7 @@ f(x,p) = state_mismatch(x) + parameter_mismatch(p)
 ```
 
 Once these are set up, we need to let the F-1 method know how to solve for the steady-state.
-We do this by using the [DiffEqBase](https://github.com/JuliaDiffEq/DiffEqBase.jl) API.
+We do this by using the [DiffEqBase](https://github.com/SciML/DiffEqBase.jl) API.
 For that, we first write a small Newton solver algorithm, we overload the `solve` function from DiffEqBase, and we overload the `SteadyStateProblem` constructor.
 
 ```jldoctest usage
@@ -85,23 +83,15 @@ function DiffEqBase.solve(prob::DiffEqBase.AbstractSteadyStateProblem,
                           Ftol=1e-10)
     # Define the functions according to DiffEqBase.SteadyStateProblem type
     p = prob.p
-    t = 0
     x0 = copy(prob.u0)
     dx, df = copy(x0), copy(x0)
-    F(x) = prob.f(dx, x, p, t)
-    ∇ₓF(x) = prob.f(df, dx, x, p, t)
+    F(x) = prob.f(x, p)
+    ∇ₓF(x) = prob.f.jac(x, p)
     # Compute `u_steady` and `resid` as per DiffEqBase using my algorithm
     x_steady = newton_solve(F, ∇ₓF, x0, Ftol=Ftol)
     resid = F(x_steady)
     # Return the common DiffEqBase solution type
     DiffEqBase.build_solution(prob, alg, x_steady, resid; retcode=:Success)
-end
-
-# Overload DiffEqBase's SteadyStateProblem constructor
-function DiffEqBase.SteadyStateProblem(F, ∇ₓF, x, p)
-    f(dx, x, p, t) = F(x, p)
-    f(df, dx, x, p, t) = ∇ₓF(x, p)
-    return DiffEqBase.SteadyStateProblem(f, x, p)
 end
 
 # output
@@ -123,11 +113,11 @@ Finally, we wrap the objective, gradient, and Hessian functions defined by the F
 
 ```jldoctest usage
 # Initialize the cache for storing reusable objects
-mem = F1Method.initialize_mem(F, ∇ₓf, ∇ₓF, x₀, p₀, MyAlg())
+mem = F1Method.initialize_mem(F, ∇ₓf, x₀, p₀, MyAlg())
 # Define the functions via the F1 method
-F1_objective(p) = F1Method.objective(f, F, ∇ₓF, mem, p, MyAlg())
-F1_gradient(p) = F1Method.gradient(f, F, ∇ₓf, ∇ₓF, mem, p, MyAlg())
-F1_Hessian(p) = F1Method.hessian(f, F, ∇ₓf, ∇ₓF, mem, p, MyAlg())
+F1_objective(p) = F1Method.objective(f, F, mem, p, MyAlg())
+F1_gradient(p) = F1Method.gradient(f, F, ∇ₓf, mem, p, MyAlg())
+F1_Hessian(p) = F1Method.hessian(f, F, ∇ₓf, mem, p, MyAlg())
 
 # output
 
@@ -164,3 +154,9 @@ F1_Hessian(p₀)
   0.0    -0.0241434
 ```
 
+# Future
+
+This package is likely not in its final form.
+The API was just changed in v0.5 (to match the API changes in AIBECS.jl v0.11).
+That being said, ultimately, it would make sense for the shortcuts used here to be integrated into a package like ChainRules.jl.
+For the time being, AIBECS users can use F1Method.jl to speed up their optimizations.

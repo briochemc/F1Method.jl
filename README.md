@@ -57,15 +57,15 @@ Optimizing the model is then simply done by minimizing `objective(p)`.
 
 The F-1 algorithm is **easy** to use, gives **accurate** results, and is computationally **fast**:
 
-- **Easy** — The F-1 algorithm basically just needs the user to provide a solver (for finding the steady-state), the mismatch function, `f`, the state function, `F`, and their derivatives, `∇ₓf` and `∇ₓF` w.r.t. the state `x`. 
-    (Note these derivatives can be computed numerically, via the [ForwardDiff](https://github.com/JuliaDiff/ForwardDiff.jl) package for example.) 
+- **Easy** — The F-1 algorithm basically just needs the user to provide a solver (for finding the steady-state), the mismatch function, `f`, an ODEFunction, `F` with its Jacobian, and the gradient of the objective w.r.t. `∇ₓf`.
+    (Note these derivatives can be computed numerically, via the [ForwardDiff](https://github.com/JuliaDiff/ForwardDiff.jl) package for example.)
 - **Accurate** — Thanks to ForwardDiff's nested dual numbers implementation, the accuracy of the gradient and Hessian, as computed by the F-1 algorithm, are close to machine precision.
 - **Fast** — The F-1 algorithm is as fast as if you derived analytical formulas for every first and second derivatives *and* used those in the most efficient way.
     This is because the bottleneck of such computations is the number of matrix factorizations, and the F-1 algorithm only requires a single one. In comparison, standard autodifferentiation methods that take the steady-state solver as a black box would require order `m` or `m^2` factorizations, where `m` is the number of parameters.
 
 ## What's needed?
 
-A requirement of the F-1 algorithm is that the Jacobian matrix `A = ∇ₓf` can be created, stored, and factorized.
+A requirement of the F-1 algorithm is that the Jacobian matrix `A = ∇ₓF` can be created, stored, and factorized.
 
 To use the F-1 algorithm, the user must:
 
@@ -81,16 +81,16 @@ Once initial values for the state, `x`, and parameters, `p`, are chosen, simply 
 
 ```julia
 # Initialize the cache for storing reusable objects
-mem = initialize_mem(F, ∇ₓf, ∇ₓF, x, p, alg; options...)
+mem = initialize_mem(F, ∇ₓf, x, p, alg; options...)
 ```
 
 wrap the functions into functions of `p` only via
 
 ```julia
 # Wrap the objective, gradient, and Hessian functions
-objective(p) = F1Method.objective(f, F, ∇ₓF, mem, p, alg; options...)
-gradient(p) = F1Method.gradient(f, F, ∇ₓf, ∇ₓF, mem, p, alg; options...)
-hessian(p) = F1Method.hessian(f, F, ∇ₓf, ∇ₓF, mem, p, alg; options...)
+objective(p) = F1Method.objective(f, F, mem, p, alg; options...)
+gradient(p) = F1Method.gradient(f, F, ∇ₓf, mem, p, alg; options...)
+hessian(p) = F1Method.hessian(f, F, ∇ₓf, mem, p, alg; options...)
 ```
 
 and compute the objective, gradient, or Hessian via either of

@@ -78,10 +78,10 @@ prior(::T) where {T<:AbstractParameters} = prior(T)
 p = PmodelParameters()
 λ = p2λ(p)
 nb = sum(iswet(grd))
-F, ∇ₓF = F_and_∇ₓF((T_DIP, T_POP), (G_DIP, G_POP), nb, PmodelParameters)
+F = AIBECSFunction((T_DIP, T_POP), (G_DIP, G_POP), nb, PmodelParameters)
 @unpack DIP_geo = p
 x = DIP_geo * ones(2nb) # initial guess
-prob = SteadyStateProblem(F, ∇ₓF, x, p)
+prob = SteadyStateProblem(F, x, p)
 sol = solve(prob, CTKAlg())
 
 # Observations from World Ocean Atlas used to evaluate the
@@ -100,10 +100,10 @@ f, ∇ₓf = f_and_∇ₓf(ωs, ωp, grd, modify, obs, PmodelParameters)
 
 # Now we apply the F1 method
 τ = ustrip(u"s", 1e3u"Myr")
-mem = F1Method.initialize_mem(F, ∇ₓf, ∇ₓF, x, λ, CTKAlg(), τstop=τ)
-objective(λ) = F1Method.objective(f, F, ∇ₓF, mem, λ, CTKAlg(), τstop=τ)
-gradient(λ) = F1Method.gradient(f, F, ∇ₓf, ∇ₓF, mem, λ, CTKAlg(), τstop=τ)
-hessian(λ) = F1Method.hessian(f, F, ∇ₓf, ∇ₓF, mem, λ, CTKAlg(), τstop=τ)
+mem = F1Method.initialize_mem(F, ∇ₓf, x, λ, CTKAlg(), τstop=τ)
+objective(λ) = F1Method.objective(f, F, mem, λ, CTKAlg(), τstop=τ)
+gradient(λ) = F1Method.gradient(f, F, ∇ₓf, mem, λ, CTKAlg(), τstop=τ)
+hessian(λ) = F1Method.hessian(f, F, ∇ₓf, mem, λ, CTKAlg(), τstop=τ)
 
 # Finally we test the result with the "reliable" FiniteDiff :)
 @test FiniteDiff.finite_difference_gradient(objective, 2λ) ≈ gradient(2λ)' rtol=1e-3

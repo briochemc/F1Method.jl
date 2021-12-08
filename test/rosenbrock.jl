@@ -30,11 +30,10 @@ function DiffEqBase.solve(prob::DiffEqBase.AbstractSteadyStateProblem,
                           Ftol=1e-10)
     # Define the functions according to DiffEqBase.SteadyStateProblem type
     p = prob.p
-    t = 0
     x0 = copy(prob.u0)
     dx, df = copy(x0), copy(x0)
-    F(x) = prob.f(dx, x, p, t)
-    ∇ₓF(x) = prob.f(df, dx, x, p, t)
+    F(x) = prob.f(x, p)
+    ∇ₓF(x) = prob.f.jac(x, p)
     # Compute `u_steady` and `resid` as per DiffEqBase using my algorithm
     x_steady = newton_solve(F, ∇ₓF, x0, Ftol=Ftol)
     resid = F(x_steady)
@@ -42,12 +41,7 @@ function DiffEqBase.solve(prob::DiffEqBase.AbstractSteadyStateProblem,
     DiffEqBase.build_solution(prob, alg, x_steady, resid; retcode=:Success)
 end
 
-# Overload DiffEqBase's SteadyStateProblem constructor
-function DiffEqBase.SteadyStateProblem(F, ∇ₓF, x, p)
-    f(dx, x, p, t) = F(x, p)
-    f(df, dx, x, p, t) = ∇ₓF(x, p)
-    return DiffEqBase.SteadyStateProblem(f, x, p)
-end
+
 
 
 # This is quasi derived from the Rosenbrock function
@@ -62,13 +56,11 @@ end
 # Specifically, if r(x,y) denotes the rosenbrock function,
 #     F₁([x, y], p) = ∂r/∂x
 #     F₂([x, y], p) = 0.5 * ∂r/∂y
-F(x,p) = [
+statefun(x,p) = [
     -2 * (p[1] - x[1]) - 4 * p[2] * (x[2] - x[1]^2) * x[1]
     p[2] * (x[2] - x[1]^2)
 ]
- 
-# Jacobian function of F w.r.t. p
-∇ₓF(x,p) = ForwardDiff.jacobian(x -> F(x,p), x)
+F = ODEFunction(statefun, jac = (x,p) -> ForwardDiff.jacobian(x -> statefun(x, p), x))
 
 # Define mismatch function f(x,p) and its derivative ∇ₓf(x,p)
 # (Note ∇ₓF and ∇ₓf are required by the F1 method)
@@ -87,12 +79,12 @@ f(x,p) = state_mismatch(x) + parameter_mismatch(p)
 x₀ = rand(2)
 p₀ = rand(2)
 # Initialize the memory cache for storing reusable objects
-mem = F1Method.initialize_mem(F, ∇ₓf, ∇ₓF, x₀, p₀, MyAlg())
+mem = F1Method.initialize_mem(F, ∇ₓf, x₀, p₀, MyAlg())
 
 # Define the functions via the F1 method
-F1_objective(p) = F1Method.objective(f, F, ∇ₓF, mem, p, MyAlg())
-F1_gradient(p) = F1Method.gradient(f, F, ∇ₓf, ∇ₓF, mem, p, MyAlg())
-F1_Hessian(p) = F1Method.hessian(f, F, ∇ₓf, ∇ₓF, mem, p, MyAlg())
+F1_objective(p) = F1Method.objective(f, F, mem, p, MyAlg())
+F1_gradient(p) = F1Method.gradient(f, F, ∇ₓf, mem, p, MyAlg())
+F1_Hessian(p) = F1Method.hessian(f, F, ∇ₓf, mem, p, MyAlg())
 
 # Define the exact solution and objective for comparison
 exact_solution(p) = [p[1], p[1]^2]

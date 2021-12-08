@@ -52,11 +52,11 @@ using Test, FormulaOneMethod
     ∇sink(x,p) = p[4] * I / n
 
     # Define state function F(x,p) and Jacobian ∇ₓF(x,p)
-    F(x,p) = -T(p) * x + source(x,p) - sink(x,p)
-    ∇ₓF(x,p) = -T(p) + ∇source(x,p) - ∇sink(x,p)
+    F(x,p) = ODEFunction((x,p) -> -T(p) * x + source(x,p) - sink(x,p),
+                         jac = (x,p) -> -T(p) + ∇source(x,p) - ∇sink(x,p))
 
     # Basic Newton solver
-    function newton_solve(F, ∇ₓF, x; Ftol=1e-10)
+    function newton_solve(F, x; Ftol=1e-10)
         while norm(F(x)) ≥ Ftol
             x .-= ∇ₓF(x) \ F(x)
         end
@@ -78,14 +78,14 @@ using Test, FormulaOneMethod
         F(x) = prob.f(dx, x, p, t)
         ∇ₓF(x) = prob.f(df, dx, x, p, t)
         # Compute `u_steady` and `resid` as per DiffEqBase using my algorithm
-        x_steady = newton_solve(F, ∇ₓF, x0, Ftol=Ftol)
+        x_steady = newton_solve(F, x0, Ftol=Ftol)
         resid = F(x_steady)
         # Return the common DiffEqBase solution type
         DiffEqBase.build_solution(prob, alg, x_steady, resid; retcode=:Success)
     end
 
     # Overload DiffEqBase's SteadyStateProblem constructor
-    function DiffEqBase.SteadyStateProblem(F, ∇ₓF, x, p)
+    function DiffEqBase.SteadyStateProblem(F, x, p)
         f(dx, x, p, t) = F(x, p)
         f(df, dx, x, p, t) = ∇ₓF(x, p)
         return DiffEqBase.SteadyStateProblem(f, x, p)
@@ -114,15 +114,15 @@ using Test, FormulaOneMethod
     mem = F1.initialize_mem(x₀, p₀)
 
     # Compute the objective function, 𝑓̂(𝒑)
-    objective(p) = F1.f̂(f, F, ∇ₓF, mem, p, MyAlg())
+    objective(p) = F1.f̂(f, F, mem, p, MyAlg())
     objective(p₀)
 
     # Compute the gradient, ∇𝑓̂(𝒑)
-    gradient(p) = F1.∇f̂(f, F, ∇ₓf, ∇ₓF, mem, p, MyAlg())
+    gradient(p) = F1.∇f̂(f, F, ∇ₓf, mem, p, MyAlg())
     gradient(p₀)
 
     # Compute the Hessian matrix, ∇²𝑓̂(𝒑)
-    Hessian(p) = F1.∇²f̂(f, F, ∇ₓf, ∇ₓF, mem, p, MyAlg())
+    Hessian(p) = F1.∇²f̂(f, F, ∇ₓf, mem, p, MyAlg())
     Hessian(p₀)
 
 #end
