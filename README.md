@@ -112,3 +112,10 @@ Now you can test how fast and accurate it is!
 If you use this package, or implement your own package based on the F-1 algorithm please cite us.
 If you use the F-1 algorithm, please cite *[Pasquier and Primeau](https://www.bpasquier.com/publication/pasquier_primeau_sisc_2019/)* (in prep.).
 If you also use this package directly, please cite it! (Use [the Zenodo link](https://doi.org/10.5281/zenodo.2667835) or the [CITATION.bib file](./CITATION.bib), which contains a bibtex entry.)
+
+# Future
+
+This package is developed mainly for use with [AIBECS.jl](https://github.com/JuliaOcean/AIBECS.jl) and is likely not in its final form.
+The API was just changed in v0.5 (to match the API changes in AIBECS.jl v0.11).
+That being said, ultimately, it would make sense for the shortcuts used here to be integrated into a package like ChainRules.jl.
+For the time being, AIBECS users can use F1Method.jl to speed up their optimizations.
