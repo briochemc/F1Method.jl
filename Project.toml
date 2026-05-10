@@ -1,25 +1,56 @@
 name = "F1Method"
 uuid = "d5605bae-6d76-11e9-2fd7-71bcf42edbaa"
 authors = ["Benoit Pasquier <briochemc@gmail.com>"]
-version = "0.5.0"
+version = "0.7.0"
 
 [deps]
-DiffEqBase = "2b5f629d-d688-5b77-993f-72d75c75574e"
+ADTypes = "47edcb42-4c32-4615-8424-f2b9edc5f35b"
+DifferentiationInterface = "a0c0ee7d-e4b9-4e03-894e-1c5f64a51d63"
 ForwardDiff = "f6369f11-7733-5829-9624-2563aa707210"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
+SciMLBase = "0bca4576-84f4-4d90-8ffe-ffa030f20462"
+
+[weakdeps]
+Optimization = "7f7a1694-90dd-40f0-9382-eb1efda571ba"
+
+[extensions]
+F1MethodOptimizationExt = "Optimization"
 
 [compat]
-DiffEqBase = "6"
-ForwardDiff = "0.10"
-julia = "1"
+ADTypes = "1"
+AIBECS = "0.17"
+Bijectors = "0.14, 0.15"
+DataFrames = "1"
+DifferentiationInterface = "0.7"
+Distributions = "0.25"
+FiniteDiff = "2"
+ForwardDiff = "1"
+Optimization = "4"
+OptimizationOptimJL = "0.4"
+SciMLBase = "2"
+Unitful = "1"
+WorldOceanAtlasTools = "0.6"
+julia = "1.10"
 
 [extras]
 AIBECS = "ace601d6-714c-11e9-04e5-89b7fad23838"
+Bijectors = "76274a88-744f-5084-9051-94815aaf08c4"
+DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
 Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
 FiniteDiff = "6a86dc24-6348-571c-b903-95158fe2bd41"
+LinearSolve = "7ed4a6bd-45f5-4d41-b270-4a48e9bafcae"
+NonlinearSolve = "8913a72c-1f9b-4ce2-8d82-65094dcecaec"
+Optimization = "7f7a1694-90dd-40f0-9382-eb1efda571ba"
+OptimizationOptimJL = "36348300-93cb-4f02-beb5-3c3902f8871e"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 Unitful = "1986cc42-f94f-5a68-af5c-568840ba703d"
 WorldOceanAtlasTools = "04f20302-f1b9-11e8-29d9-7d841cb0a64a"
 
 [targets]
-test = ["Test", "AIBECS", "Unitful", "Distributions", "WorldOceanAtlasTools", "FiniteDiff"]
+test = ["Test", "AIBECS", "Bijectors", "DataFrames", "Unitful", "Distributions", "WorldOceanAtlasTools", "FiniteDiff", "LinearSolve", "NonlinearSolve", "Optimization", "OptimizationOptimJL"]
+
+# Track the local AIBECS dev checkout (currently on bp-claude/analytical_dGs)
+# so Pkg.test exercises the analytical-∂Gs feature for F1Method validation.
+# Drop this once AIBECS releases the feature.
+[sources]
+AIBECS = {path = "/Users/benoitpasquier/.julia/dev/AIBECS"}
