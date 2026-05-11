@@ -74,11 +74,15 @@ using F1Method
 using LinearAlgebra, SciMLBase, ForwardDiff
 
 # State function F
-statefun(x,p) = [
+# (The `t = 0` default lets us call `statefun(x, p)` directly while still
+# satisfying SciMLBase's ODE-shape signature check at `ODEFunction` construction.
+# `ODEFunction{false}` declares it out-of-place and skips the inplace probe.)
+statefun(x, p, t = 0) = [
     -2 * (p[1] - x[1]) - 4 * p[2] * (x[2] - x[1]^2) * x[1]
     p[2] * (x[2] - x[1]^2)
 ]
-F = ODEFunction(statefun, jac = (x,p) -> ForwardDiff.jacobian(x -> statefun(x, p), x))
+F = ODEFunction{false}(statefun;
+    jac = (x, p, t = 0) -> ForwardDiff.jacobian(x -> statefun(x, p), x))
 ```
 
 We also define a cost function `f(x,p)` (that we wish to minimize under the constraint that `F(x,p) = 0`).
