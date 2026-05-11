@@ -49,8 +49,9 @@ WorldOceanAtlasTools = "04f20302-f1b9-11e8-29d9-7d841cb0a64a"
 [targets]
 test = ["Test", "AIBECS", "Bijectors", "DataFrames", "Unitful", "Distributions", "WorldOceanAtlasTools", "FiniteDiff", "LinearSolve", "NonlinearSolve", "Optimization", "OptimizationOptimJL"]
 
-# Track the local AIBECS dev checkout (currently on bp-claude/analytical_dGs)
-# so Pkg.test exercises the analytical-∂Gs feature for F1Method validation.
-# Drop this once AIBECS releases the feature.
+# Track the AIBECS PR branch that adds the analytical-∂Gs feature so
+# Pkg.test exercises it for F1Method validation.
+# TODO: swap back to a released AIBECS version (and drop this block)
+# once the PR merges and ships.
 [sources]
-AIBECS = {path = "/Users/benoitpasquier/.julia/dev/AIBECS"}
+AIBECS = {url = "https://github.com/JuliaOcean/AIBECS.jl.git", rev = "bp-claude/analytical_dGs"}
