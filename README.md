@@ -4,12 +4,6 @@
 # F-1 algorithm
 
 <p>
-  <a href="https://briochemc.github.io/F1Method.jl/stable/">
-    <img src="https://img.shields.io/github/workflow/status/briochemc/F1Method.jl/Documentation?style=for-the-badge&label=Documentation&logo=Read%20the%20Docs&logoColor=white">
-  </a>
-</p>
-
-<p>
   <a href="https://doi.org/10.5281/zenodo.2667835">
     <img src="http://img.shields.io/badge/DOI-10.5281%20%2F%20zenodo.2667835-blue.svg?&style=flat-square">
   </a>
@@ -19,14 +13,8 @@
 </p>
 
 <p>
-  <a href="https://github.com/briochemc/F1Method.jl/actions">
-    <img src="https://img.shields.io/github/workflow/status/briochemc/F1Method.jl/Mac%20OS%20X?label=OSX&logo=Apple&logoColor=white&style=flat-square">
-  </a>
-  <a href="https://github.com/briochemc/F1Method.jl/actions">
-    <img src="https://img.shields.io/github/workflow/status/briochemc/F1Method.jl/Linux?label=Linux&logo=Linux&logoColor=white&style=flat-square">
-  </a>
-  <a href="https://github.com/briochemc/F1Method.jl/actions">
-    <img src="https://img.shields.io/github/workflow/status/briochemc/F1Method.jl/Windows?label=Windows&logo=Windows&logoColor=white&style=flat-square">
+  <a href="https://github.com/briochemc/F1Method.jl/actions/workflows/Test.yml">
+    <img src="https://img.shields.io/github/actions/workflow/status/briochemc/F1Method.jl/Test.yml?label=Test&logo=github&logoColor=white&style=flat-square">
   </a>
   <a href="https://codecov.io/gh/briochemc/F1Method.jl">
     <img src="https://img.shields.io/codecov/c/github/briochemc/F1Method.jl/master?label=Codecov&logo=codecov&logoColor=white&style=flat-square">
@@ -70,37 +58,101 @@ A requirement of the F-1 algorithm is that the Jacobian matrix `A = ∇ₓF` can
 To use the F-1 algorithm, the user must:
 
 - Make sure that there is a suitable algorithm `alg` to solve the steady-state equation
-- overload the `solve` function and the `SteadyStateProblem` constructor from [SciMLBase](https://github.com/JuliaDiffEq/SciMLBase.jl). (An example is given in the CI tests — see, e.g., the [`test/simple_setup.jl`](test/simple_setup.jl) file.)
+- overload the `solve` function and the `SteadyStateProblem` constructor from [SciMLBase](https://github.com/SciML/SciMLBase.jl). (An example is given below, and another in the CI tests — see, e.g., the [`test/simple_setup.jl`](test/simple_setup.jl) file.)
 - Provide the derivatives of `f` and `F` with respect to the state, `x`.
 
 ## A concrete example
 
-Make sure you have overloaded `solve` from SciMLBase
-(an example of how to do this is given in the [documentation](https://briochemc.github.io/F1Method.jl/stable/)).
-Once initial values for the state, `x`, and parameters, `p`, are chosen, simply initialize the required memory cache, `mem` via
+We define a state function, `F(x,p)`, to which we apply a Newton solver to find the steady-state solution, `x`, such that `F(x,p) = 0`.
+This defines the steady-state solution as an implicit function of the parameters, `p`, which we denote by `s(p)`.
+The Newton solver requires the Jacobian, `∇ₓF`, to update the state iterates, so we start by creating the functions `F(x,p)` and `∇ₓF(x,p)`.
+As an example, we use a simple model with two state variables and two parameters.
+(For simplicity we use [ForwardDiff](https://github.com/JuliaDiff/ForwardDiff.jl) to evaluate the Jacobian.)
 
 ```julia
+using F1Method
+using LinearAlgebra, SciMLBase, ForwardDiff
+
+# State function F
+statefun(x,p) = [
+    -2 * (p[1] - x[1]) - 4 * p[2] * (x[2] - x[1]^2) * x[1]
+    p[2] * (x[2] - x[1]^2)
+]
+F = ODEFunction(statefun, jac = (x,p) -> ForwardDiff.jacobian(x -> statefun(x, p), x))
+```
+
+We also define a cost function `f(x,p)` (that we wish to minimize under the constraint that `F(x,p) = 0`).
+The F-1 method requires the derivative of `f` w.r.t. the state, `x`, so we use ForwardDiff again:
+
+```julia
+# Define mismatch function f(x,p) and its derivative ∇ₓf(x,p)
+function state_mismatch(x)
+    δ(x) = x .- 1
+    return 0.5δ(x)'δ(x)
+end
+function parameter_mismatch(p)
+    δ(p) = log.(p)
+    return 0.5δ(p)'δ(p)
+end
+f(x,p) = state_mismatch(x) + parameter_mismatch(p)
+∇ₓf(x,p) = ForwardDiff.jacobian(x -> [f(x,p)], x)
+```
+
+Once these are set up, we tell the F-1 method how to solve for the steady state by using the [SciMLBase](https://github.com/SciML/SciMLBase.jl) API: we write a small Newton solver, then overload `solve` and the `SteadyStateProblem` constructor.
+
+```julia
+function newton_solve(F, ∇ₓF, x; Ftol=1e-10)
+    while norm(F(x)) ≥ Ftol
+        x .-= ∇ₓF(x) \ F(x)
+    end
+    return x
+end
+
+# Create a type for the solver's algorithm
+struct MyAlg <: SciMLBase.AbstractSteadyStateAlgorithm end
+
+# Overload SciMLBase's solve function
+function SciMLBase.solve(prob::SciMLBase.AbstractSteadyStateProblem,
+                         alg::MyAlg;
+                         Ftol=1e-10)
+    p = prob.p
+    x0 = copy(prob.u0)
+    F(x) = prob.f(x, p)
+    ∇ₓF(x) = prob.f.jac(x, p)
+    x_steady = newton_solve(F, ∇ₓF, x0, Ftol=Ftol)
+    resid = F(x_steady)
+    SciMLBase.build_solution(prob, alg, x_steady, resid; retcode=:Success)
+end
+```
+
+Pick initial values for the state `x` and parameters `p`, initialize the cache, and wrap the objective, gradient, and Hessian:
+
+```julia
+x₀, p₀ = [1.0, 2.0], [3.0, 4.0]
+
 # Initialize the cache for storing reusable objects
-mem = initialize_mem(F, ∇ₓf, x, p, alg; options...)
+mem = F1Method.initialize_mem(F, ∇ₓf, x₀, p₀, MyAlg())
+
+# Define the functions via the F1 method
+objective(p) = F1Method.objective(f, F, mem, p, MyAlg())
+gradient(p)  = F1Method.gradient(f, F, ∇ₓf, mem, p, MyAlg())
+hessian(p)   = F1Method.hessian(f, F, ∇ₓf, mem, p, MyAlg())
 ```
 
-wrap the functions into functions of `p` only via
+You can now call `objective(p₀)`, `gradient(p₀)`, and `hessian(p₀)` directly:
 
 ```julia
-# Wrap the objective, gradient, and Hessian functions
-objective(p) = F1Method.objective(f, F, mem, p, alg; options...)
-gradient(p) = F1Method.gradient(f, F, ∇ₓf, mem, p, alg; options...)
-hessian(p) = F1Method.hessian(f, F, ∇ₓf, mem, p, alg; options...)
-```
+julia> objective(p₀)
+35.56438050824269
 
-and compute the objective, gradient, or Hessian via either of
+julia> gradient(p₀)
+1×2 Array{Float64,2}:
+ 50.3662  0.346574
 
-```julia
-objective(p)
-
-gradient(p)
-
-hessian(p)
+julia> hessian(p₀)
+2×2 Array{Float64,2}:
+ 52.989   0.0
+  0.0    -0.0241434
 ```
 
 That's it.
