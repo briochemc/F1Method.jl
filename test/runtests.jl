@@ -7,7 +7,10 @@ using Test
     include("rosenbrock.jl")
 end
 
+@testset "Optimization.jl extension" begin
+    include("optimization_ext.jl")
+end
+
 @testset "AIBECS test" begin
     include("AIBECS_test.jl")
 end
-

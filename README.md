@@ -150,11 +150,12 @@ julia> objective(p₀)
 35.56438050824269
 
 julia> gradient(p₀)
-1×2 Array{Float64,2}:
- 50.3662  0.346574
+2-element Vector{Float64}:
+ 50.3662
+  0.346574
 
 julia> hessian(p₀)
-2×2 Array{Float64,2}:
+2×2 Matrix{Float64}:
  52.989   0.0
   0.0    -0.0241434
 ```
@@ -172,6 +173,6 @@ If you also use this package directly, please cite it! (Use [the Zenodo link](ht
 # Future
 
 This package is developed mainly for use with [AIBECS.jl](https://github.com/JuliaOcean/AIBECS.jl) and is likely not in its final form.
-The API was just changed in v0.5 (to match the API changes in AIBECS.jl v0.11).
+The API was last changed in v0.6: `gradient` now returns a `Vector` (previously a `1 × m` row matrix), parameter-side AD is routed through [DifferentiationInterface.jl](https://github.com/JuliaDiff/DifferentiationInterface.jl) (configurable via the `ad` kwarg on `initialize_mem`), and an `F1MethodOptimizationExt` weak-dep extension exposes `optimization_function(...)` for use with [Optimization.jl](https://github.com/SciML/Optimization.jl).
 That being said, ultimately, it would make sense for the shortcuts used here to be integrated into a package like ChainRules.jl.
 For the time being, AIBECS users can use F1Method.jl to speed up their optimizations.
