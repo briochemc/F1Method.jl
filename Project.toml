@@ -18,7 +18,7 @@ F1MethodOptimizationExt = "Optimization"
 
 [compat]
 ADTypes = "1"
-AIBECS = "0.17"
+AIBECS = "0.18"
 Bijectors = "0.14, 0.15"
 DataFrames = "1"
 DifferentiationInterface = "0.7"
@@ -48,10 +48,3 @@ WorldOceanAtlasTools = "04f20302-f1b9-11e8-29d9-7d841cb0a64a"
 
 [targets]
 test = ["Test", "AIBECS", "Bijectors", "DataFrames", "Unitful", "Distributions", "WorldOceanAtlasTools", "FiniteDiff", "LinearSolve", "NonlinearSolve", "Optimization", "OptimizationOptimJL"]
-
-# Track the AIBECS PR branch that adds the analytical-∂Gs feature so
-# Pkg.test exercises it for F1Method validation.
-# TODO: swap back to a released AIBECS version (and drop this block)
-# once the PR merges and ships.
-[sources]
-AIBECS = {url = "https://github.com/JuliaOcean/AIBECS.jl.git", rev = "bp-claude/analytical_dGs"}
