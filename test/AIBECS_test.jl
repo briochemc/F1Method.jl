@@ -152,7 +152,8 @@ f, ∇ₓf = f_and_∇ₓf(ωs, ωp, grd, modify, obs, PmodelParameters)
 # A tight abstol forces CTKAlg to re-converge after FiniteDiff's small
 # parameter perturbations rather than returning the warm-started cached
 # steady state.
-solver_kwargs = (; abstol = 1e-12, maxItNewton = 200)
+solver_kwargs    = (; abstol = 0.0, maxItNewton = 20)   # CTKAlg uses maxItNewton — push to machine floor
+nl_solver_kwargs = (; abstol = 0.0, maxiters    = 20)   # NewtonRaphson uses maxiters — push to machine floor
 mem = F1Method.initialize_mem(F, ∇ₓf, x, λ, CTKAlg(); solver_kwargs...)
 gradient(λ) = F1Method.gradient(f, F, ∇ₓf, mem, λ, CTKAlg(); solver_kwargs...)
 hessian(λ)  = F1Method.hessian(f, F, ∇ₓf, mem, λ, CTKAlg(); solver_kwargs...)
@@ -173,24 +174,9 @@ end
 # Mirror via the NonlinearSolve route. Independent IFT implementation
 # (SciML's `__solve(::DualNonlinearProblem, …)` dispatch) — if both AD paths
 # corroborate the analytical F1 formula, the formula is doubly cross-checked.
-#
-# `AIBECS.nonlinearproblem` attaches a *sparse* `jac_prototype`. SciML's
-# nested-Dual (Hessian) path through `LinearSolveForwardDiffExt` currently
-# fails for sparse Float64 prototype + Dual params (`MethodError:
-# map!(partial_vals, ::Nothing, ::Vector{Float64})`). Dense / no prototype
-# works. For this 2x2x2 test problem dense is fine — densifying lets us run
-# both gradient *and* Hessian through the NL route end-to-end.
-using SciMLBase: NonlinearProblem, NonlinearFunction
 function objective_cold_nl(λ_eval)
-    ssprob = SteadyStateProblem(F, x, λ_eval)
-    nlprob = NonlinearProblem(ssprob)
-    f_dense = NonlinearFunction(
-        nlprob.f.f;
-        jac = nlprob.f.jac,
-        jac_prototype = Matrix{Float64}(undef, length(x), length(x)),
-    )
-    prob = NonlinearProblem(f_dense, nlprob.u0, nlprob.p)
-    s_eval = solve(prob, NewtonRaphson(); solver_kwargs...).u
+    nlprob = NonlinearProblem(SteadyStateProblem(F, x, λ_eval))
+    s_eval = solve(nlprob, NewtonRaphson(); nl_solver_kwargs...).u
     return f(s_eval, λ_eval)
 end
 
