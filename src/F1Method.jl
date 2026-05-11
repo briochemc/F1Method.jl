@@ -44,7 +44,7 @@ mutable struct Mem{Ts, TA, T∇s, T∇ₓf, Tp, AD <: AbstractADType}
 end
 
 
-function update_mem!(f, F, ∇ₓf, mem, p, alg; options...)
+function update_mem!(F, ∇ₓf, mem, p, alg; options...)
     if p ≠ mem.p                              # only update if 𝒑 has changed
         update_solution!(F, mem, p, alg; options...)
         ∇ₚF = DI.jacobian(p -> F(mem.s, p), mem.ad, p)
@@ -80,12 +80,12 @@ end
     gradient(f, F, ∇ₓf, mem, p, alg; options...)
 
 Return the gradient `∇𝑓̂(𝒑)` as a `Vector` using the F-1 method. (Prior
-to F1Method 0.7 this returned a `1 × m` row matrix; the new shape is
+to F1Method 0.6 this returned a `1 × m` row matrix; the new shape is
 `Vector{T}` of length `m = length(p)`, which is what Optim.jl /
 Optimization.jl expect.)
 """
 function gradient(f, F, ∇ₓf, mem, p, alg; options...)
-    update_mem!(f, F, ∇ₓf, mem, p, alg; options...)
+    update_mem!(F, ∇ₓf, mem, p, alg; options...)
     s, ∇s = mem.s, mem.∇s
     ∇ₚf = DI.gradient(p -> f(s, p), mem.ad, p)
     return vec(mem.∇ₓf * ∇s) + ∇ₚf
@@ -97,7 +97,7 @@ end
 Return the Hessian `∇²𝑓̂(𝒑)` as an `m × m` `Matrix` using the F-1 method.
 """
 function hessian(f, F, ∇ₓf, mem, p, alg; options...)
-    update_mem!(f, F, ∇ₓf, mem, p, alg; options...)
+    update_mem!(F, ∇ₓf, mem, p, alg; options...)
     s, A, ∇s, m = mem.s, mem.A, mem.∇s, length(p)
     A⁻ᵀ∇ₓfᵀ = vec(A' \ mem.∇ₓf')              # independent of (𝑗, 𝑘)
     H(λ) = f(s + ∇s * λ, p + λ) - F(s + ∇s * λ, p + λ)' * A⁻ᵀ∇ₓfᵀ

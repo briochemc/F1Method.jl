@@ -158,6 +158,13 @@ mem = F1Method.initialize_mem(F, ∇ₓf, x, λ, CTKAlg(); solver_kwargs...)
 gradient(λ) = F1Method.gradient(f, F, ∇ₓf, mem, λ, CTKAlg(); solver_kwargs...)
 hessian(λ)  = F1Method.hessian(f, F, ∇ₓf, mem, λ, CTKAlg(); solver_kwargs...)
 
+# Note: we deliberately do not test `F1Method.objective` here. It just
+# returns `f(mem.s, p)` after re-solving the steady state for `p` — there
+# is no analytical adjoint involved, so the only thing it would check is
+# whether the steady-state solve + `f` evaluation agree with themselves.
+# The interesting validation surface is `gradient` / `hessian`, which is
+# what the cross-checks below exercise.
+
 # Cold-started reference objective for verification.
 #
 # F1Method's gradient/hessian use the analytical adjoint formula at the
