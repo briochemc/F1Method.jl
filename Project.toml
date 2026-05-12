@@ -1,7 +1,7 @@
 name = "F1Method"
 uuid = "d5605bae-6d76-11e9-2fd7-71bcf42edbaa"
 authors = ["Benoit Pasquier <briochemc@gmail.com>"]
-version = "0.6.0"
+version = "0.6.1"
 
 [deps]
 ADTypes = "47edcb42-4c32-4615-8424-f2b9edc5f35b"
