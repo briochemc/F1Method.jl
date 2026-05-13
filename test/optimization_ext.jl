@@ -45,10 +45,10 @@ f(x, p) = state_mismatch(x) + parameter_mismatch(p)
 
 x₀ = ones(2) .+ 0.1
 p₀ = ones(2) .* 1.5
-mem = F1Method.initialize_mem(F, ∇ₓf, x₀, p₀, MyAlg())
+cache = F1Method.F1Cache(F, ∇ₓf, x₀, p₀, MyAlg())
 
 # Build the OptimizationFunction via the extension method
-optfn = F1Method.optimization_function(f, F, ∇ₓf, mem, MyAlg())
+optfn = F1Method.optimization_function(f, F, ∇ₓf, cache, MyAlg())
 
 @testset "Optimization.jl extension" begin
     @test optfn isa SciMLBase.OptimizationFunction

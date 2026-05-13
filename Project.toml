@@ -1,7 +1,7 @@
 name = "F1Method"
 uuid = "d5605bae-6d76-11e9-2fd7-71bcf42edbaa"
 authors = ["Benoit Pasquier <briochemc@gmail.com>"]
-version = "0.6.1"
+version = "0.7.0"
 
 [deps]
 ADTypes = "47edcb42-4c32-4615-8424-f2b9edc5f35b"
@@ -11,9 +11,11 @@ LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 SciMLBase = "0bca4576-84f4-4d90-8ffe-ffa030f20462"
 
 [weakdeps]
+LinearSolve = "7ed4a6bd-45f5-4d41-b270-4a48e9bafcae"
 Optimization = "7f7a1694-90dd-40f0-9382-eb1efda571ba"
 
 [extensions]
+F1MethodLinearSolveExt = "LinearSolve"
 F1MethodOptimizationExt = "Optimization"
 
 [compat]
@@ -25,6 +27,7 @@ DifferentiationInterface = "0.7"
 Distributions = "0.25"
 FiniteDiff = "2"
 ForwardDiff = "1"
+LinearSolve = "3"
 Optimization = "4, 5.5"
 OptimizationOptimJL = "0.4"
 SciMLBase = "2, 3.9"

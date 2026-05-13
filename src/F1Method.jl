@@ -14,106 +14,130 @@ using DifferentiationInterface
 const DI = DifferentiationInterface
 
 """
-    Mem
+    F1Cache
 
 Memory cache holding the steady-state solution and the linear-algebra
 artifacts that the F-1 method reuses across `objective`, `gradient`, and
 `hessian` calls at the same parameter point.
 
 # Fields
-- `s`    : the steady-state solution, `𝒔(𝒑)`
-- `A`    : the factors of `𝐀 = ∇ₓ𝑭(𝒔, 𝒑)`
-- `∇s`   : the parameter-Jacobian of the steady state, `∇𝒔(𝒑)`
-- `∇ₓf`  : the state-Jacobian of the objective at the steady state,
-           `∇ₓ𝑓(𝒔, 𝒑)`
-- `p`    : the parameter vector that matches `A`, `∇s`, `∇ₓf` (and `s`)
-- `psol` : the parameter vector that matches `s` (may be ahead of `p`
+- `linear_cache`: a linear-solve cache holding the factors of
+    `𝐀 = ∇ₓ𝑭(𝒔, 𝒑)` — either a `Factorization` (default)
+    or a `LinearSolve.LinearCache` when a `linsolve`
+    algorithm is configured
+- `s`: the steady-state solution, `𝒔(𝒑)`
+- `∇s`: the parameter-Jacobian of the steady state, `∇𝒔(𝒑)`
+- `∇ₓf`: the state-Jacobian of the objective at the steady state, `∇ₓ𝑓(𝒔, 𝒑)`
+- `p`: the parameter vector that matches `linear_cache`, `∇s`, `∇ₓf` (and `s`)
+- `psol`: the parameter vector that matches `s` (may be ahead of `p`
            when only the steady-state solve has been refreshed)
-- `ad`   : the AD backend used for parameter-side derivatives
+- `ad`: the AD backend used for parameter-side derivatives
 
-Initialise with [`initialize_mem`](@ref).
+Construct with `F1Cache`.
 """
-mutable struct Mem{Ts, TA, T∇s, T∇ₓf, Tp, AD <: AbstractADType}
-    s::Ts
-    A::TA
-    ∇s::T∇s
-    ∇ₓf::T∇ₓf
-    p::Tp
-    psol::Tp
+mutable struct F1Cache{C, S, JACS, JACF, P, AD <: AbstractADType}
+    linear_cache::C
+    s::S
+    ∇s::JACS
+    ∇ₓf::JACF
+    p::P
+    psol::P
     ad::AD
 end
 
 
-function update_mem!(F, ∇ₓf, mem, p, alg; options...)
-    if p ≠ mem.p                              # only update if 𝒑 has changed
-        update_solution!(F, mem, p, alg; options...)
-        ∇ₚF = DI.jacobian(p -> F(mem.s, p), mem.ad, p)
-        mem.A = factorize(F.jac(mem.s, p))    # update factors of ∇ₓ𝑭(𝒔, 𝒑)
-        mem.∇s .= mem.A \ -∇ₚF                # update ∇𝒔
-        mem.∇ₓf .= ∇ₓf(mem.s, p)              # update ∇ₓ𝑓(𝒔, 𝒑)
-        mem.p .= p                            # update 𝒑 for the cached values
+# Solve-operation helpers on the mathematical operator 𝐀 = ∇ₓ𝑭. The
+# `Factorization` branch lives here; the `LinearCache` branch lives in
+# F1MethodLinearSolveExt.
+set_A!(cache::F1Cache, J)   = cache.linear_cache = factorize(J)
+solveA!(cache::F1Cache, b)  = cache.linear_cache \ b
+solveAᵀ!(cache::F1Cache, B) = cache.linear_cache' \ B
+
+
+function update_cache!(F, ∇ₓf, cache, p, alg; options...)
+    if p ≠ cache.p                            # only update if 𝒑 has changed
+        update_solution!(F, cache, p, alg; options...)
+        ∇ₚF = DI.jacobian(p -> F(cache.s, p), cache.ad, p)
+        set_A!(cache, F.jac(cache.s, p))      # update factors of ∇ₓ𝑭(𝒔, 𝒑)
+        cache.∇s .= solveA!(cache, -∇ₚF)      # update ∇𝒔
+        cache.∇ₓf .= ∇ₓf(cache.s, p)          # update ∇ₓ𝑓(𝒔, 𝒑)
+        cache.p .= p                          # update 𝒑 for the cached values
     end
+    return cache
 end
 
-function update_solution!(F, mem, p, alg; options...)
-    if p ≠ mem.psol
-        prob = SteadyStateProblem(F, mem.s, p)
-        mem.s .= solve(prob, alg; options...).u
-        mem.psol .= p
+function update_solution!(F, cache, p, alg; options...)
+    if p ≠ cache.psol
+        prob = SteadyStateProblem(F, cache.s, p)
+        cache.s .= solve(prob, alg; options...).u
+        cache.psol .= p
     end
+    return cache
 end
 
 """
-    objective(f, F, mem, p, alg; options...)
+    objective(f, F, cache, p, alg; options...)
 
 Evaluate `𝑓̂(𝒑) = 𝑓(𝒔(𝒑), 𝒑)`, where `𝒔(𝒑)` is the steady-state solution
 computed by the iterative solver `alg` (so that `𝑭(𝒔, 𝒑) = 0`). The
-memory cache `mem` (built with [`initialize_mem`](@ref)) is updated
-in place if `𝒑` has changed since the last call.
+`cache` (built with `F1Cache`) is updated in place if `𝒑` has
+changed since the last call.
 """
-function objective(f, F, mem, p, alg; options...)
-    update_solution!(F, mem, p, alg; options...)
-    return f(mem.s, p)
+function objective(f, F, cache, p, alg; options...)
+    update_solution!(F, cache, p, alg; options...)
+    return f(cache.s, p)
 end
 
 """
-    gradient(f, F, ∇ₓf, mem, p, alg; options...)
+    gradient(f, F, ∇ₓf, cache, p, alg; options...)
 
 Return the gradient `∇𝑓̂(𝒑)` as a `Vector` using the F-1 method. (Prior
 to F1Method 0.6 this returned a `1 × m` row matrix; the new shape is
 `Vector{T}` of length `m = length(p)`, which is what Optim.jl /
 Optimization.jl expect.)
 """
-function gradient(f, F, ∇ₓf, mem, p, alg; options...)
-    update_mem!(F, ∇ₓf, mem, p, alg; options...)
-    s, ∇s = mem.s, mem.∇s
-    ∇ₚf = DI.gradient(p -> f(s, p), mem.ad, p)
-    return vec(mem.∇ₓf * ∇s) + ∇ₚf
+function gradient(f, F, ∇ₓf, cache, p, alg; options...)
+    update_cache!(F, ∇ₓf, cache, p, alg; options...)
+    s, ∇s = cache.s, cache.∇s
+    ∇ₚf = DI.gradient(p -> f(s, p), cache.ad, p)
+    return vec(cache.∇ₓf * ∇s) + ∇ₚf
 end
 
 """
-    hessian(f, F, ∇ₓf, mem, p, alg; options...)
+    hessian(f, F, ∇ₓf, cache, p, alg; options...)
 
 Return the Hessian `∇²𝑓̂(𝒑)` as an `m × m` `Matrix` using the F-1 method.
 """
-function hessian(f, F, ∇ₓf, mem, p, alg; options...)
-    update_mem!(F, ∇ₓf, mem, p, alg; options...)
-    s, A, ∇s, m = mem.s, mem.A, mem.∇s, length(p)
-    A⁻ᵀ∇ₓfᵀ = vec(A' \ mem.∇ₓf')              # independent of (𝑗, 𝑘)
+function hessian(f, F, ∇ₓf, cache, p, alg; options...)
+    update_cache!(F, ∇ₓf, cache, p, alg; options...)
+    s, ∇s, m = cache.s, cache.∇s, length(p)
+    A⁻ᵀ∇ₓfᵀ = vec(solveAᵀ!(cache, cache.∇ₓf'))   # independent of (𝑗, 𝑘)
     H(λ) = f(s + ∇s * λ, p + λ) - F(s + ∇s * λ, p + λ)' * A⁻ᵀ∇ₓfᵀ
-    return DI.hessian(H, mem.ad, zeros(m))
+    return DI.hessian(H, cache.ad, zeros(m))
 end
 
 """
-    initialize_mem(F, ∇ₓf, x, p, alg; ad=AutoForwardDiff(), options...)
+    F1Cache(F, ∇ₓf, x, p, alg; ad=AutoForwardDiff(), linsolve=nothing, options...)
 
-Initialise the F-1 memory cache. `ad` selects the AD backend used for
+Construct the F-1 memory cache. `ad` selects the AD backend used for
 parameter-side derivatives (any `ADTypes.AbstractADType`); it defaults
-to `AutoForwardDiff()`, matching pre-0.7 behaviour. Remaining keyword
-arguments are forwarded to `solve(::SteadyStateProblem, alg; ...)`.
+to `AutoForwardDiff()`, matching pre-0.7 behaviour. Passing a
+`linsolve <: SciMLBase.AbstractLinearAlgorithm` (from
+[LinearSolve.jl](https://github.com/SciML/LinearSolve.jl)) routes the
+internal linear solves through a `LinearSolve.LinearCache`, enabling
+symbolic-factorization reuse for sparse direct solvers and buffer
+reuse for dense; the default `linsolve = nothing` keeps the legacy
+`factorize` / `\\` path. Remaining keyword arguments are forwarded to
+`solve(::SteadyStateProblem, alg; ...)`.
 """
-function initialize_mem(F, ∇ₓf, x, p, alg;
-                        ad::AbstractADType = AutoForwardDiff(), options...)
+function F1Cache(F, ∇ₓf, x, p, alg;
+                 ad::AbstractADType = AutoForwardDiff(),
+                 linsolve = nothing,
+                 options...)
+    return _init_F1Cache(linsolve, F, ∇ₓf, x, p, alg, ad; options...)
+end
+
+function _init_F1Cache(::Nothing, F, ∇ₓf, x, p, alg, ad; options...)
     x = copy(x)
     p = copy(p)
     psol = copy(p)
@@ -121,14 +145,28 @@ function initialize_mem(F, ∇ₓf, x, p, alg;
     s = solve(prob, alg; options...).u
     A = factorize(F.jac(s, p))
     ∇ₚF = DI.jacobian(p -> F(s, p), ad, p)
-    return Mem(s, A, A \ -∇ₚF, ∇ₓf(s, p), p, psol, ad)
+    return F1Cache(A, s, A \ -∇ₚF, ∇ₓf(s, p), p, psol, ad)
 end
 
 """
-    optimization_function(f, F, ∇ₓf, mem, alg; options...)
+    initialize_mem(args...; kwargs...)
 
-Wrap the F-1-method `objective` / `gradient` / `hessian` triple at memory
-cache `mem` into a `SciMLBase.OptimizationFunction`, ready to feed into
+Deprecated; use `F1Cache` instead. Retained for 0.7.x; will be
+removed in 0.8.
+"""
+function initialize_mem(args...; kwargs...)
+    Base.depwarn(
+        "initialize_mem is deprecated; use F1Cache(...) instead",
+        :initialize_mem,
+    )
+    return F1Cache(args...; kwargs...)
+end
+
+"""
+    optimization_function(f, F, ∇ₓf, cache, alg; options...)
+
+Wrap the F-1-method `objective` / `gradient` / `hessian` triple at the
+F-1 `cache` into a `SciMLBase.OptimizationFunction`, ready to feed into
 `OptimizationProblem` and any solver from the [Optimization.jl][1]
 ecosystem.
 
@@ -138,5 +176,12 @@ when `Optimization.jl` has been loaded.
 [1]: https://docs.sciml.ai/Optimization/stable/
 """
 function optimization_function end
+
+# TODO(F1Method 0.8?): consider whether `optimization_function` should
+# accept its own `linsolve` and rebuild the F1Cache internally, vs.
+# always inheriting from the F1Cache the caller passes in. Today the
+# latter is simpler — F1Cache is the carrier of every cached artifact
+# including the linear solver — but if F1Cache construction grows more
+# args this could become awkward.
 
 end # module
