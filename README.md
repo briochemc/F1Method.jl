@@ -135,12 +135,12 @@ Pick initial values for the state `x` and parameters `p`, initialize the cache, 
 x₀, p₀ = [1.0, 2.0], [3.0, 4.0]
 
 # Initialize the cache for storing reusable objects
-mem = F1Method.initialize_mem(F, ∇ₓf, x₀, p₀, MyAlg())
+cache = F1Method.F1Cache(F, ∇ₓf, x₀, p₀, MyAlg())
 
 # Define the functions via the F1 method
-objective(p) = F1Method.objective(f, F, mem, p, MyAlg())
-gradient(p)  = F1Method.gradient(f, F, ∇ₓf, mem, p, MyAlg())
-hessian(p)   = F1Method.hessian(f, F, ∇ₓf, mem, p, MyAlg())
+objective(p) = F1Method.objective(f, F, cache, p, MyAlg())
+gradient(p)  = F1Method.gradient(f, F, ∇ₓf, cache, p, MyAlg())
+hessian(p)   = F1Method.hessian(f, F, ∇ₓf, cache, p, MyAlg())
 ```
 
 You can now call `objective(p₀)`, `gradient(p₀)`, and `hessian(p₀)` directly:
@@ -164,6 +164,25 @@ That's it.
 You were told it was simple, weren't you?
 Now you can test how fast and accurate it is!
 
+## Custom linear solver
+
+By default F1Method uses Julia's `factorize` / `\` for the inner linear solves.
+You can opt into [LinearSolve.jl](https://github.com/SciML/LinearSolve.jl) by passing a `linsolve` algorithm to the `F1Cache` constructor:
+
+```julia
+using LinearSolve
+cache = F1Method.F1Cache(F, ∇ₓf, x₀, p₀, MyAlg(); linsolve = UMFPACKFactorization())
+```
+
+With a `linsolve` set, the `F1Cache.linear_cache` field holds a `LinearSolve.LinearCache` (it holds a plain `Factorization` otherwise).
+Symbolic factorizations are reused across parameter updates (for sparse direct solvers), and the same factors are reused for the adjoint solve inside `hessian`.
+
+F1Method expects `F.jac(s, p)` to return either a `Matrix{Float64}` or `SparseMatrixCSC{Float64}`.
+CI exercises `LUFactorization`, `GenericLUFactorization`, `UMFPACKFactorization`, and `KLUFactorization`.
+Other LU-family algorithms whose `cacheval` is a Julia `Factorization` should also work (`MKLLUFactorization`, `AppleAccelerateLUFactorization`, `RFLUFactorization`, `SparspakFactorization`, `ParUFactorization`).
+
+Pardiso, MUMPS, CUDSS, STRUMPACK, and cusolverRF require per-solver adjoint shims and are not supported in 0.7.
+
 ## Citing the software
 
 If you use this package, or implement your own package based on the F-1 algorithm please cite us.
@@ -173,6 +192,7 @@ If you also use this package directly, please cite it! (Use [the Zenodo link](ht
 # Future
 
 This package is developed mainly for use with [AIBECS.jl](https://github.com/JuliaOcean/AIBECS.jl) and is likely not in its final form.
-The API was last changed in v0.6: `gradient` now returns a `Vector` (previously a `1 × m` row matrix), parameter-side AD is routed through [DifferentiationInterface.jl](https://github.com/JuliaDiff/DifferentiationInterface.jl) (configurable via the `ad` kwarg on `initialize_mem`), and an `F1MethodOptimizationExt` weak-dep extension exposes `optimization_function(...)` for use with [Optimization.jl](https://github.com/SciML/Optimization.jl).
+The API was last changed in v0.7: the `Mem` type was renamed to `F1Cache` and `initialize_mem(...)` to the `F1Cache(...)` constructor (deprecation wrappers retained for 0.7.x, removed in 0.8), and a new `linsolve` keyword on `F1Cache` opts into a [LinearSolve.jl](https://github.com/SciML/LinearSolve.jl)-backed linear-solve path via the `F1MethodLinearSolveExt` weak-dep extension.
+v0.6 changed `gradient` to return a `Vector` (previously a `1 × m` row matrix), routed parameter-side AD through [DifferentiationInterface.jl](https://github.com/JuliaDiff/DifferentiationInterface.jl) (configurable via the `ad` kwarg on the `F1Cache` constructor), and added an `F1MethodOptimizationExt` weak-dep extension exposing `optimization_function(...)` for use with [Optimization.jl](https://github.com/SciML/Optimization.jl).
 That being said, ultimately, it would make sense for the shortcuts used here to be integrated into a package like ChainRules.jl.
 For the time being, AIBECS users can use F1Method.jl to speed up their optimizations.

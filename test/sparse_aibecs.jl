@@ -154,12 +154,8 @@ f, ∇ₓf = f_and_∇ₓf(ωs, ωp, grd, modify, obs, PmodelParameters)
 # steady state.
 solver_kwargs    = (; abstol = 0.0, maxItNewton = 20)   # CTKAlg uses maxItNewton — push to machine floor
 nl_solver_kwargs = (; abstol = 0.0, maxiters    = 20)   # NewtonRaphson uses maxiters — push to machine floor
-mem = F1Method.initialize_mem(F, ∇ₓf, x, λ, CTKAlg(); solver_kwargs...)
-gradient(λ) = F1Method.gradient(f, F, ∇ₓf, mem, λ, CTKAlg(); solver_kwargs...)
-hessian(λ)  = F1Method.hessian(f, F, ∇ₓf, mem, λ, CTKAlg(); solver_kwargs...)
-
 # Note: we deliberately do not test `F1Method.objective` here. It just
-# returns `f(mem.s, p)` after re-solving the steady state for `p` — there
+# returns `f(cache.s, p)` after re-solving the steady state for `p` — there
 # is no analytical adjoint involved, so the only thing it would check is
 # whether the steady-state solve + `f` evaluation agree with themselves.
 # The interesting validation surface is `gradient` / `hessian`, which is
@@ -168,7 +164,7 @@ hessian(λ)  = F1Method.hessian(f, F, ∇ₓf, mem, λ, CTKAlg(); solver_kwargs.
 # Cold-started reference objective for verification.
 #
 # F1Method's gradient/hessian use the analytical adjoint formula at the
-# cached `mem.s`. To validate them, we need an independent ground truth
+# cached `cache.s`. To validate them, we need an independent ground truth
 # that does *not* depend on the cached state. We re-solve from scratch
 # (cold start) for each evaluation and let ForwardDiff propagate Duals
 # through Newton + the analytical ∂Gs Jacobian. With analytical ∂Gs in
@@ -187,20 +183,45 @@ function objective_cold_nl(λ_eval)
     return f(s_eval, λ_eval)
 end
 
-# F1 vs ForwardDiff + CTKAlg (existing checks)
-@test ForwardDiff.gradient(objective_cold, 2λ) ≈ gradient(2λ) rtol = 1e-6
-@test ForwardDiff.hessian(objective_cold, 2λ)  ≈ hessian(2λ)  rtol = 1e-6
-@test ForwardDiff.gradient(objective_cold, λ)  ≈ gradient(λ)  rtol = 1e-6
-@test ForwardDiff.hessian(objective_cold, λ)   ≈ hessian(λ)   rtol = 1e-6
+# Pre-compute ground-truth oracles once — they are invariant under
+# `linsolve` (they don't touch F1Method at all), so the LinearSolve loop
+# below reuses them across every variant. Each ForwardDiff hessian here
+# costs ~1.6s warm; computing them per-variant would add ~10s for no
+# information gain.
+fd_g    = (λ = ForwardDiff.gradient(objective_cold, λ),    twoλ = ForwardDiff.gradient(objective_cold, 2λ))
+fd_h    = (λ = ForwardDiff.hessian(objective_cold, λ),     twoλ = ForwardDiff.hessian(objective_cold, 2λ))
+fdnl_g  = (λ = ForwardDiff.gradient(objective_cold_nl, λ), twoλ = ForwardDiff.gradient(objective_cold_nl, 2λ))
+fdnl_h  = (λ = ForwardDiff.hessian(objective_cold_nl, λ),  twoλ = ForwardDiff.hessian(objective_cold_nl, 2λ))
+finitediff_g = FiniteDiff.finite_difference_gradient(objective_cold, λ)
+finitediff_h = FiniteDiff.finite_difference_hessian(objective_cold, λ)
 
-# F1 vs ForwardDiff + NonlinearSolve
-@test ForwardDiff.gradient(objective_cold_nl, 2λ) ≈ gradient(2λ) rtol = 1e-6
-@test ForwardDiff.hessian(objective_cold_nl, 2λ)  ≈ hessian(2λ)  rtol = 1e-6
-@test ForwardDiff.gradient(objective_cold_nl, λ)  ≈ gradient(λ)  rtol = 1e-6
-@test ForwardDiff.hessian(objective_cold_nl, λ)   ≈ hessian(λ)   rtol = 1e-6
+# `linsolve = nothing` skips LinearSolve entirely and uses Julia's
+# `factorize`, which on a `SparseMatrixCSC{Float64}` returns a UMFPACK
+# `LU` from SparseArrays (same family as UMFPACKFactorization, but
+# invoked directly through LinearAlgebra rather than via a
+# LinearSolve.LinearCache).
+for linsolve in (nothing, UMFPACKFactorization(), KLUFactorization())
+    @testset "linsolve = $(linsolve)" begin
+        cache = F1Method.F1Cache(F, ∇ₓf, x, λ, CTKAlg(); linsolve = linsolve, solver_kwargs...)
+        gradient(λ) = F1Method.gradient(f, F, ∇ₓf, cache, λ, CTKAlg(); solver_kwargs...)
+        hessian(λ)  = F1Method.hessian(f, F, ∇ₓf, cache, λ, CTKAlg(); solver_kwargs...)
 
-# FD reference (sanity check at looser rtol — second-order FD is noisy).
-@test FiniteDiff.finite_difference_gradient(objective_cold, λ) ≈ gradient(λ) rtol = 1e-4
-@test FiniteDiff.finite_difference_hessian(objective_cold, λ)  ≈ hessian(λ)  rtol = 1e-2
+        # F1 vs ForwardDiff + CTKAlg
+        @test fd_g.λ    ≈ gradient(λ)  rtol = 1e-6
+        @test fd_h.λ    ≈ hessian(λ)   rtol = 1e-6
+        @test fd_g.twoλ ≈ gradient(2λ) rtol = 1e-6
+        @test fd_h.twoλ ≈ hessian(2λ)  rtol = 1e-6
+
+        # F1 vs ForwardDiff + NonlinearSolve
+        @test fdnl_g.λ    ≈ gradient(λ)  rtol = 1e-6
+        @test fdnl_h.λ    ≈ hessian(λ)   rtol = 1e-6
+        @test fdnl_g.twoλ ≈ gradient(2λ) rtol = 1e-6
+        @test fdnl_h.twoλ ≈ hessian(2λ)  rtol = 1e-6
+
+        # FD reference (sanity check at looser rtol — second-order FD is noisy).
+        @test finitediff_g ≈ gradient(λ) rtol = 1e-4
+        @test finitediff_h ≈ hessian(λ)  rtol = 1e-2
+    end
+end
 
 end # submodule
