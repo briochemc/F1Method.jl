@@ -1,7 +1,7 @@
 name = "F1Method"
 uuid = "d5605bae-6d76-11e9-2fd7-71bcf42edbaa"
-authors = ["Benoit Pasquier <briochemc@gmail.com>"]
 version = "0.7.0"
+authors = ["Benoit Pasquier <briochemc@gmail.com>"]
 
 [deps]
 ADTypes = "47edcb42-4c32-4615-8424-f2b9edc5f35b"
@@ -20,7 +20,7 @@ F1MethodOptimizationExt = "Optimization"
 
 [compat]
 ADTypes = "1"
-AIBECS = "0.18"
+AIBECS = "0.18, 0.19"
 Bijectors = "0.14, 0.15"
 DataFrames = "1"
 DifferentiationInterface = "0.7"
