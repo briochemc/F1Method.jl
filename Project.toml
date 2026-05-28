@@ -20,7 +20,7 @@ F1MethodOptimizationExt = "Optimization"
 
 [compat]
 ADTypes = "1"
-AIBECS = "0.18, 0.19"
+AIBECS = "0.18, 0.19, 0.20"
 Bijectors = "0.14, 0.15"
 DataFrames = "1"
 DifferentiationInterface = "0.7"
