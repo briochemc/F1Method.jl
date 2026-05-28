@@ -152,8 +152,8 @@ f, ∇ₓf = f_and_∇ₓf(ωs, ωp, grd, modify, obs, PmodelParameters)
 # A tight abstol forces CTKAlg to re-converge after FiniteDiff's small
 # parameter perturbations rather than returning the warm-started cached
 # steady state.
-solver_kwargs    = (; abstol = 0.0, maxItNewton = 20)   # CTKAlg uses maxItNewton — push to machine floor
-nl_solver_kwargs = (; abstol = 0.0, maxiters    = 20)   # NewtonRaphson uses maxiters — push to machine floor
+solver_kwargs    = (; reltol = 0.0, abstol = 0.0, maxItNewton = 20)   # CTKAlg uses maxItNewton — push to machine floor
+nl_solver_kwargs = (; reltol = 0.0, abstol = 0.0, maxiters    = 20)   # NewtonRaphson uses maxiters — push to machine floor
 # Note: we deliberately do not test `F1Method.objective` here. It just
 # returns `f(cache.s, p)` after re-solving the steady state for `p` — there
 # is no analytical adjoint involved, so the only thing it would check is
